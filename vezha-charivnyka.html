@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Подорож до Вежі Чарівника</title>
+<style>
+:root{
+  --bg:#14121c; --panel:#262335; --panel2:#1b1928; --line:#4b4566; --ink:#fff; --muted:#d3cdf0;
+  --gold:#ffd23f; --green:#4fd16a; --red:#ff3b3b; --blue:#4aa8ff; --purple:#a66bff; --orange:#ffb347;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#07060b;overflow:hidden;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:var(--ink);font-size:24px}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;background:var(--bg);overflow:hidden;user-select:none}
+.hidden{display:none!important}
+.pix{image-rendering:pixelated;image-rendering:crisp-edges}
+button{font-family:inherit;cursor:pointer;color:#fff}
+.panel{background-color:var(--panel);background-image:var(--tpanel);background-size:64px;image-rendering:auto;border:4px solid #000;box-shadow:inset 0 0 0 4px var(--line),inset 10px 10px 0 rgba(255,255,255,.04),0 6px 0 rgba(0,0,0,.45)}
+
+/* ---------- buttons ---------- */
+.btn{font-size:26px;font-weight:800;padding:12px 22px;border:4px solid #000;background:#5a5470;color:#fff;
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.35),inset 4px 4px 0 rgba(255,255,255,.22);text-shadow:2px 2px 0 rgba(0,0,0,.5);white-space:nowrap;transition:filter .15s,transform .05s}
+.btn:hover:not(:disabled){filter:brightness(1.18)}
+.btn:active:not(:disabled){transform:translateY(3px)}
+.btn:disabled{opacity:.38;cursor:default}
+.btn.next{background:#2f9e44}
+.btn.think{background:#2f6fd8}
+.btn.reveal{background:#8a4fd8}
+.btn.fast{background:#d88a1f}
+.btn.big{font-size:30px;padding:14px 26px}
+.btn.huge{font-size:42px;padding:20px 44px}
+.btn.small{font-size:22px;padding:6px 14px}
+.btn.ready{background:#e0a812;color:#1d1b2a;text-shadow:none;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes floatUp{0%{transform:translateY(10px);opacity:0}20%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ---------- top: journey ---------- */
+#top{position:absolute;left:16px;top:12px;right:16px;height:304px;display:flex;gap:16px}
+#journey{flex:1;position:relative;padding:10px 18px}
+.jtitle{font-size:30px;font-weight:900;color:var(--gold);text-shadow:3px 3px 0 #000}
+.jtitle small{font-size:20px;color:var(--muted);margin-left:14px;font-weight:700;text-shadow:2px 2px 0 #000}
+#bSound{position:absolute;right:16px;top:10px}
+#track{position:absolute;left:18px;right:18px;top:56px;bottom:10px}
+#paths{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.pbase{stroke:#e9e4ff;stroke-width:6;stroke-dasharray:10 10;opacity:.55}
+.plit{stroke:var(--gold);stroke-width:10;filter:drop-shadow(0 0 6px #ffd23f);transition:stroke-dashoffset .3s}
+.tile{position:absolute;top:6px;width:164px;height:152px;border:4px solid #000;background:#000;transition:box-shadow .5s}
+.tile .scene{width:100%;height:100%;display:block;transition:filter .8s}
+.tile.locked .scene{filter:brightness(.4) saturate(.35)}
+.tile.cur{box-shadow:0 0 0 4px var(--gold),0 0 26px 4px rgba(255,210,63,.7)}
+.tlabel{position:absolute;left:-40px;right:-40px;top:154px;text-align:center;font-size:22px;font-weight:900;text-shadow:2px 2px 0 #000;white-space:nowrap}
+.tile.locked .tlabel{opacity:.55}
+.tile.done .tlabel::before{content:"✓ ";color:var(--green)}
+.tile.cur .tlabel{color:var(--gold)}
+.fog{position:absolute;inset:-8px;pointer-events:none;transition:opacity 2.6s;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 28% 35%,rgba(235,232,255,.96) 0 28%,transparent 58%),radial-gradient(circle at 72% 62%,rgba(225,222,248,.96) 0 30%,transparent 62%),radial-gradient(circle at 50% 85%,rgba(245,243,255,.92) 0 34%,transparent 66%),rgba(205,200,235,.6);
+  filter:blur(5px);animation:fogd 5s ease-in-out infinite alternate}
+.fog span{font-size:72px;font-weight:900;color:#6a5aa0;filter:blur(0);text-shadow:0 0 10px #fff}
+@keyframes fogd{to{transform:translateX(12px) scale(1.06)}}
+#journey.clear .fog{opacity:0}
+#journey.clear .tile.tower{animation:tglow 1.2s infinite alternate}
+@keyframes tglow{from{box-shadow:0 0 18px 6px rgba(255,210,63,.6)}to{box-shadow:0 0 44px 18px rgba(255,210,63,.95)}}
+#mtrav{position:absolute;top:88px;width:48px;height:64px;z-index:5;pointer-events:none}
+#mtrav img{width:48px;height:64px;display:block;filter:drop-shadow(0 0 4px #fff) drop-shadow(3px 3px 0 rgba(0,0,0,.5))}
+
+/* ---------- backpack ---------- */
+#backpack{width:430px;padding:10px 12px}
+.bptitle{font-size:28px;font-weight:900;color:var(--gold);text-shadow:3px 3px 0 #000;margin:2px 0 8px 6px}
+#bpSlots{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px;height:226px}
+.slot{background:#14121c;border:4px solid #000;box-shadow:inset 0 0 0 3px #3b3656;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;overflow:hidden}
+.slot .qm{font-size:40px;color:#4b4566;font-weight:900}
+.slot.on{background:#2c2440;cursor:pointer;box-shadow:inset 0 0 0 3px var(--gold)}
+.slot b{font-size:17px;letter-spacing:.3px;color:var(--gold)}
+.slot b.long{font-size:14px;letter-spacing:0}
+.slot i{font-size:16px;font-style:normal;color:#fff}
+.slot.pop{animation:pop .5s}
+
+/* ---------- field ---------- */
+#field{position:absolute;left:16px;right:16px;top:332px;bottom:12px;padding:10px 18px}
+#play,#screen{position:absolute;inset:10px 18px;display:flex;flex-direction:column;gap:8px}
+#fhead{height:56px;display:flex;align-items:center;gap:18px;flex:none}
+#btitle{font-size:30px;font-weight:900;white-space:nowrap;text-shadow:3px 3px 0 #000}
+#btitle .ch{color:var(--gold)}
+.blab{font-size:20px;color:var(--muted);white-space:nowrap}
+#bbar{flex:1;display:flex;gap:8px;height:30px}
+#bbar i{flex:1;background:#0f0e16;border:3px solid #000;box-shadow:inset 0 0 0 2px #4b4566;position:relative;overflow:hidden}
+#bbar i::after{content:"";position:absolute;inset:2px;background:repeating-linear-gradient(90deg,#7dff8f 0 12px,#4fd16a 12px 24px);transform:scaleX(0);transform-origin:left;transition:transform .7s}
+#bbar i.on::after{transform:scaleX(1)}
+#bbar i.cur{box-shadow:inset 0 0 0 2px var(--gold)}
+#qcount{font-size:24px;color:var(--muted);white-space:nowrap}
+#qtext{flex:none;min-height:56px;font-size:38px;font-weight:900;display:flex;align-items:center;text-shadow:3px 3px 0 #000;line-height:1.15}
+#qbody{flex:1;min-height:0;position:relative}
+#controls{flex:none;height:80px;display:flex;gap:12px;align-items:center}
+#controls .sp{flex:1}
+.keys{font-size:20px;color:#8a83ad;font-weight:800;margin-right:4px}
+
+/* feedback */
+.fb{font-size:26px;font-weight:700;padding:12px 18px;border:4px solid #000;min-height:72px;line-height:1.28;background:var(--panel2);color:#a9a2cc;box-shadow:inset 0 0 0 3px #3b3656}
+.fb:empty::before{content:"🙋 Слухаємо відповідь класу…"}
+.fb.ok{background:#174d27;color:#e3ffe8;box-shadow:inset 0 0 0 3px var(--green);animation:pop .35s}
+.fb.no{background:#4d3514;color:#fff0d6;box-shadow:inset 0 0 0 3px var(--orange);animation:shake .35s}
+.fb.info{background:#14324d;color:#e0f0ff;box-shadow:inset 0 0 0 3px var(--blue)}
+.fb.ans{background:#3a2160;color:#f3e9ff;box-shadow:inset 0 0 0 3px var(--purple);animation:pop .35s}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{font-size:30px;font-weight:800;text-align:left;padding:14px 22px;background:#3a3552;border:4px solid #000;box-shadow:inset -4px -4px 0 rgba(0,0,0,.35),inset 4px 4px 0 rgba(255,255,255,.18)}
+.opt:hover{filter:brightness(1.2)}
+.opt b{color:var(--gold);margin-right:10px}
+.opt.right{background:#1f7a37;box-shadow:inset 0 0 0 4px var(--green)}
+.opt.bad{background:#7a5014;animation:shake .4s}
+
+/* steppers */
+.stepper{display:flex;align-items:center;gap:10px}
+.sb{width:76px;height:76px;font-size:48px;font-weight:900;background:#3a3552;border:4px solid #000;box-shadow:inset -4px -4px 0 rgba(0,0,0,.35),inset 4px 4px 0 rgba(255,255,255,.2);line-height:1}
+.sb:disabled{opacity:.35}
+.sv{min-width:230px;height:76px;background:#0f0e16;border:4px solid #000;box-shadow:inset 0 0 0 3px var(--gold);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;padding:0 14px;white-space:nowrap}
+.sv .ax{color:var(--gold)}
+.sv b{margin-left:10px}
+
+/* ---------- grids ---------- */
+.cgrid{position:relative;flex:none}
+.cgrid .lx,.cgrid .lz{position:absolute;font-size:19px;font-weight:800;color:#e9e4ff;display:flex;align-items:center;justify-content:center;text-shadow:2px 2px 0 #000}
+.cgrid .z0{color:var(--gold);font-size:22px}
+.axn{position:absolute;font-size:26px;font-weight:900;color:var(--gold);text-shadow:2px 2px 0 #000;white-space:nowrap;display:flex;align-items:center}
+.nb{position:absolute;width:44px;text-align:center;font-weight:900;font-size:26px;line-height:1;color:#fff;background:#0f0e16;border:3px solid #000;padding:4px 0}
+.nb b{display:block;color:var(--red);font-size:30px}
+.cells{position:absolute;display:grid;border:4px solid #000;box-sizing:content-box;box-shadow:0 6px 0 rgba(0,0,0,.4)}
+.cell{border-right:1px solid rgba(0,0,0,.25);border-bottom:1px solid rgba(0,0,0,.25);background-image:var(--t);background-size:100% 100%;image-rendering:pixelated}
+.cell.ax{box-shadow:inset 0 0 0 999px rgba(255,210,63,.16)}
+.cells.click .cell{cursor:pointer}
+.cells.click .cell:hover{box-shadow:inset 0 0 0 4px #fff}
+.ents{position:absolute;inset:0;pointer-events:none}
+.ent{position:absolute;display:flex;align-items:flex-end;justify-content:center;transition:left .38s ease,top .38s ease}
+.ent.trav{z-index:4}
+.ent.trav img{filter:drop-shadow(0 0 3px #fff) drop-shadow(2px 3px 0 rgba(0,0,0,.45))}
+.ent.mid{align-items:center}
+.ent.foot{align-items:center}
+.ent.foot::after{content:"";width:14px;height:14px;background:rgba(110,70,20,.55);border-radius:2px}
+.ent.pred{align-items:center;z-index:3}
+.ent.pred span{width:86%;height:86%;border:4px dashed var(--gold);background:rgba(255,210,63,.3);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;text-shadow:2px 2px 0 #000;animation:pulse 1s infinite}
+.ent.flash{animation:shake .4s}
+.ent.flash img{filter:drop-shadow(0 0 8px #ff3b3b) drop-shadow(0 0 4px #ff3b3b)}
+.sign{position:absolute;transform:translate(-50%,-100%);background:#7a4c22;border:3px solid #2b1a08;color:#fff;font-size:22px;font-weight:900;padding:3px 10px;white-space:nowrap;transition:left .38s,top .38s;z-index:6;box-shadow:inset 0 0 0 2px #a8743a,2px 3px 0 rgba(0,0,0,.4)}
+.sign b{padding:0 3px}
+.sign b.hl{background:var(--gold);color:#1d1b2a;animation:pop .4s}
+.particle{position:absolute;width:10px;height:10px;pointer-events:none;z-index:8}
+
+/* ---------- biome 1 ---------- */
+.b1{display:flex;gap:28px;height:100%}
+.b1c{width:480px;height:480px;flex:none;margin-top:-6px}
+.rcomp{width:480px;height:480px;display:block}
+.dl{cursor:pointer}
+.dlc{fill:#fff3cf;stroke:#1d1b2a;stroke-width:5;transition:fill .2s}
+.dl:hover .dlc{fill:#ffe39a}
+.dl.found .dlc{fill:#c8f7d0;stroke:#1f7a37;stroke-width:8}
+.dl.bad .dlc{fill:#ffc58a}
+.dlt{font:900 84px "Trebuchet MS",Arial,sans-serif;fill:#1d1b2a;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.dlt.n{fill:#e8322f}
+.wedge{fill:transparent;transition:fill .5s}
+.wedge.front{fill:rgba(255,210,63,.55)}
+.wedge.back{fill:rgba(166,107,255,.5)}
+.wedge.right{fill:rgba(79,209,106,.5)}
+.wedge.left{fill:rgba(74,168,255,.5)}
+.b1r{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.b1top{display:flex;gap:20px;flex:1;min-height:0}
+.words{display:flex;flex-direction:column;gap:10px;flex:1}
+.word{display:flex;align-items:center;gap:16px;background:var(--panel2);border:4px solid #000;box-shadow:inset 0 0 0 3px #3b3656;padding:4px 14px;height:72px}
+.word .wl{font-size:46px;font-weight:900;width:50px;text-align:center}
+.word .wl.n{color:var(--red)}
+.word .we{font-size:42px;font-weight:900;color:var(--gold);min-width:150px}
+.word .wu{font-size:30px;flex:1}
+.word:not(.on) .we,.word:not(.on) .wu,.word:not(.on) .speak{visibility:hidden}
+.word:not(.on){opacity:.5}
+.word.on{animation:pop .45s}
+.speak{font-size:28px;width:58px;height:54px;background:#2f2b44;border:3px solid #000;box-shadow:inset 0 0 0 2px #5a5470;flex:none}
+.speak:hover{filter:brightness(1.3)}
+.no-tts .speak{display:none!important}
+.rels{flex:1;display:flex;flex-direction:column;gap:10px}
+.rtitle{font-size:26px;font-weight:800;color:var(--muted);height:30px}
+.rel{font-size:28px;font-weight:800;padding:6px 14px;border:4px solid #000;background:var(--panel2);display:flex;align-items:center;gap:12px;height:64px;transition:background .4s}
+.rel .ra{font-size:30px;width:36px;text-align:center}
+.rel b{font-size:34px}
+.rel i{color:var(--muted);font-style:normal}
+.rel.front.on{background:#6b5810}.rel.back.on{background:#4a2c7a}.rel.right.on{background:#1f6a33}.rel.left.on{background:#1d4c78}
+.rel.on{animation:pop .4s}
+
+/* ---------- biome 2 ---------- */
+.b2{display:flex;gap:34px;height:100%;align-items:flex-start}
+.pad{display:grid;grid-template-columns:repeat(3,112px);grid-template-rows:repeat(3,112px);gap:6px;flex:none;margin-top:14px}
+.pb{border:4px solid #000;background:#3a3552;box-shadow:inset -4px -4px 0 rgba(0,0,0,.35),inset 4px 4px 0 rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.pb:hover{filter:brightness(1.2)}
+.pb:active{transform:translateY(3px)}
+.pb b{font-size:50px}
+.pb span{font-size:20px;font-weight:800}
+.pb i{font-size:17px;font-style:normal;color:var(--muted)}
+.pb.pN b{color:var(--red)}
+.pN{grid-area:1/2}.pW{grid-area:2/1}.pE{grid-area:2/3}.pS{grid-area:3/2}
+.pc{grid-area:2/2;display:flex;align-items:center;justify-content:center;font-size:56px}
+.running .pb,.running .rbtns .btn{pointer-events:none;opacity:.5}
+.rp{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.rlab{font-size:28px;font-weight:900}
+.rlab small{font-size:20px;color:var(--muted);font-weight:700}
+.route{display:flex;flex-wrap:wrap;gap:12px 6px;min-height:150px;align-content:flex-start;background:#0f0e16;border:4px solid #000;padding:12px 10px 16px}
+.rempty{font-size:24px;color:#6f6894;padding:8px}
+.rc{position:relative;width:66px;height:58px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;border:3px solid rgba(0,0,0,.45);box-shadow:0 4px 0 rgba(0,0,0,.4);animation:pop .25s}
+.rc::after{content:"";position:absolute;bottom:-9px;left:10px;width:16px;height:7px;background:inherit;border:3px solid rgba(0,0,0,.45);border-top:none;border-radius:0 0 5px 5px}
+.rc b{font-size:30px;line-height:1}.rc i{font-size:13px;font-style:normal}
+.rc.dN{background:#d8413a}.rc.dS{background:#2f7fd8}.rc.dE{background:#2f9e44}.rc.dW{background:#c9821a}
+.rc.on{outline:4px solid #fff;transform:translateY(-4px)}
+.rc.bad{outline:4px solid var(--orange);animation:shake .4s}
+.rbtns{display:flex;gap:12px}
+.stats{font-size:26px;font-weight:700}
+.stats b{color:var(--gold)}
+.drop{position:absolute;left:50%;top:-30px;transform:translateX(-50%);animation:bob 1s infinite}
+
+/* ---------- biome 3 ---------- */
+.b3{display:flex;gap:30px;height:100%}
+.b3s{flex:1;display:flex;flex-direction:column;gap:16px;min-width:0;padding-top:10px}
+.b3row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.lbl{font-size:28px;font-weight:900}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:pop .35s}
+.rule{font-size:26px;font-weight:800;background:var(--panel2);border:4px solid #000;padding:10px 14px}
+.rule .ra{display:inline-block;width:40px}
+.rule b{color:var(--gold)}
+.rule em{font-style:normal;color:var(--green)}
+.rule u{text-decoration:none;color:var(--orange)}
+
+/* ---------- biome 4 ---------- */
+.b4{display:flex;gap:20px;height:100%}
+.b4c{width:340px;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px}
+.b4ct{font-size:24px;font-weight:900;color:var(--muted)}
+.b4lab{font-size:24px;text-align:center;font-weight:700}
+.b4lab b{font-size:30px;color:var(--gold)}
+.b4m{flex:none;width:620px;height:440px;border:4px solid #000;box-sizing:content-box;box-shadow:0 6px 0 rgba(0,0,0,.4)}
+.b4map{display:block}
+.mlab{font:900 22px "Trebuchet MS",Arial,sans-serif;fill:#fff;stroke:#1d1b2a;stroke-width:5px;paint-order:stroke;text-anchor:middle}
+.cmdt{font:900 24px Consolas,"Courier New",monospace;fill:var(--gold);text-anchor:middle}
+.b4s{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+
+/* ---------- biome 5 ---------- */
+.b5{display:flex;gap:26px;height:100%}
+.ctable{width:900px;flex:none;border:4px solid #000;background-image:var(--tplanks);background-size:64px;image-rendering:pixelated;padding:10px 18px;box-shadow:inset 0 0 0 4px #c98a4a,0 6px 0 rgba(0,0,0,.4);display:flex;flex-direction:column;gap:10px}
+.cthead{font-size:28px;font-weight:900;text-shadow:3px 3px 0 #000}
+.ctrow{display:flex;align-items:center;gap:14px}
+.cslot{position:relative;width:136px;height:136px;background:#8b8b8b;border:4px solid #000;box-shadow:inset 4px 4px 0 #373737,inset -4px -4px 0 #fff;display:flex;align-items:center;justify-content:center;flex:none}
+.cslot.big{width:250px;height:250px}
+.cslot canvas{width:112px;height:112px;border:3px solid #6b5a2a}
+.cslot.big canvas{width:220px;height:220px}
+.cslot.empty canvas{display:none}
+.cslot.empty::after{content:"?";font-size:80px;font-weight:900;color:#5d5d6b}
+.cslot.locked{background:#555}
+.cslot.locked::after{content:"✕";position:absolute;font-size:90px;color:#ff3b3b;font-weight:900;text-shadow:3px 3px 0 #000}
+.sl{position:absolute;bottom:-30px;left:0;right:0;text-align:center;font-size:20px;font-weight:800;text-shadow:2px 2px 0 #000}
+.si img{animation:pop .3s}
+.sym{font-size:56px;font-weight:900;text-shadow:3px 3px 0 #000}
+.items{display:flex;gap:16px;margin-top:22px}
+.item{flex:1;display:flex;align-items:center;gap:14px;background:#3a3552;border:4px solid #000;padding:8px 14px;box-shadow:inset -4px -4px 0 rgba(0,0,0,.35),inset 4px 4px 0 rgba(255,255,255,.2);text-align:left}
+.item:hover{filter:brightness(1.2)}
+.item:disabled{opacity:.35;cursor:default;filter:grayscale(1)}
+.item b{display:block;font-size:28px}
+.item i{display:block;font-size:22px;font-style:normal;color:var(--gold)}
+.b5s{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.b5s .opts{display:grid;grid-template-columns:1fr 1fr}
+.scalebox{background:var(--panel2);border:4px solid #000;padding:10px 14px}
+.sbt{font-size:24px;font-weight:800;color:var(--muted);margin-bottom:6px}
+.scales{display:flex;align-items:center;gap:6px}
+.scales span{min-width:66px;height:58px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;background:#0f0e16;border:3px solid #000;color:#6f6894;transition:all .3s}
+.scales span.on{background:var(--gold);color:#1d1b2a;transform:scale(1.12)}
+.scales span.past{color:#fff}
+.scales em{font-style:normal;font-size:26px;color:var(--muted)}
+.pcount{font-size:26px;font-weight:800;margin-top:6px;min-height:32px}
+
+/* ---------- biome 6 ---------- */
+.b6{display:flex;gap:22px;height:100%}
+.b6mid{width:600px;flex:none;display:flex;flex-direction:column;gap:14px;background:var(--panel2);border:4px solid #000;padding:12px 16px}
+.mtitle{font-size:24px;font-weight:800;color:var(--muted)}
+.mbs{display:flex;flex-direction:column;gap:22px;align-items:flex-start}
+.mblock{position:relative;display:inline-flex;align-items:center;gap:9px;white-space:nowrap;background:#1fa39a;color:#fff;font-size:25px;font-weight:800;padding:14px 18px;border-radius:12px;border:3px solid #0c5e58;box-shadow:0 5px 0 #0c5e58;cursor:pointer;margin-top:6px;transition:transform .15s}
+.mblock::before{content:"";position:absolute;top:-3px;left:24px;width:34px;height:9px;background:var(--panel2);border:3px solid #0c5e58;border-top:none;border-radius:0 0 8px 8px}
+.mblock::after{content:"";position:absolute;bottom:-14px;left:24px;width:34px;height:9px;background:#1fa39a;border:3px solid #0c5e58;border-top:none;border-radius:0 0 8px 8px}
+.mblock .v{background:#fff;color:#1d1b2a;border-radius:20px;padding:2px 10px;min-width:50px;text-align:center;font-family:Consolas,"Courier New",monospace;font-weight:900}
+.mblock .v.t{color:#c2185b}
+.mblock.sel{outline:5px solid var(--gold);outline-offset:5px}
+.mblock.running{animation:pulse .5s 2;filter:brightness(1.3)}
+.mblock.right{outline:5px solid var(--green);outline-offset:5px}
+.mblock.bad{animation:shake .4s}
+.mblock:hover{filter:brightness(1.12)}
+.where{font-size:26px;font-weight:800}
+.where b{color:var(--gold)}
+.b6btns{display:flex;flex-direction:column;gap:12px;margin-top:auto}
+.b6s{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.hint6{font-size:26px;font-weight:800;background:var(--panel2);border:4px solid #000;padding:10px 14px}
+.rules6{font-size:25px;font-weight:700;background:#2a1f4a;border:4px solid #000;box-shadow:inset 0 0 0 3px var(--purple);padding:10px 14px;line-height:1.3;animation:pop .35s}
+.rules6 b{color:#ff6fb0;font-size:30px}
+.rules6 small{font-size:22px;color:var(--muted)}
+.ent.pred,.ent.starE{align-items:center}
+.ent.towerE{z-index:3}
+.ent.towerE.veil img{opacity:0}
+.ent.towerE.veil::after{content:"?";position:absolute;inset:6px;display:flex;align-items:center;justify-content:center;background:rgba(230,226,255,.7);border:3px dashed #6a5aa0;color:#6a5aa0;font-size:40px;font-weight:900}
+.ent.towerE.show img{animation:pop .6s;filter:drop-shadow(0 0 10px #ffd23f)}
+.ent.always{align-items:center;z-index:2}
+.ent.always span{width:92%;height:92%;border:4px solid var(--gold);background:rgba(255,210,63,.35);display:flex;align-items:center;justify-content:center;font-size:30px;animation:pop .5s}
+.b6b{display:flex;gap:22px;height:100%}
+.note{width:400px;flex:none;background-image:var(--tparch);background-size:64px;image-rendering:pixelated;color:#3b2a10;border:4px solid #000;box-shadow:inset 0 0 0 4px #c7b37a,0 6px 0 rgba(0,0,0,.4);padding:14px 18px;display:flex;flex-direction:column;gap:10px;transform:rotate(-1.2deg)}
+.nt{font-size:28px;font-weight:900}
+.note p{font-size:27px;font-weight:700;margin:0;line-height:1.3}
+.note p b{color:#8a1f1f}
+.scaleTag{margin-top:auto;font-size:24px;font-weight:900;background:#3b2a10;color:var(--gold);padding:8px 12px;text-align:center}
+.b6bs{flex:1;display:flex;flex-direction:column;gap:16px;min-width:0}
+.cmd{font-family:Consolas,"Courier New",monospace;font-size:44px;font-weight:900;background:#0f0e16;border:4px solid #000;box-shadow:inset 0 0 0 3px #3b3656;padding:12px 18px;white-space:nowrap}
+.cmd .cv{color:var(--gold);background:#2c2440;padding:0 10px;border-bottom:4px solid var(--gold)}
+.twoSteps{display:flex;gap:18px;flex-wrap:wrap}
+.twoSteps .sv{min-width:200px;font-size:38px}
+
+/* ---------- screens ---------- */
+.start,.final{display:flex;align-items:center;gap:60px;height:100%;padding:0 40px}
+.sart{display:flex;align-items:flex-end;gap:40px;flex:none}
+.sart img:first-child{animation:bob 1.4s infinite}
+.stext h1{font-size:68px;margin:0 0 18px;color:var(--gold);text-shadow:5px 5px 0 #000}
+.stext p{font-size:32px;line-height:1.35;margin:0 0 30px;max-width:1100px}
+.stext p b{color:var(--gold)}
+.thelp{margin-top:30px;font-size:22px;color:var(--muted)}
+.ftower{flex:none;position:relative}
+.ftower img{width:230px;height:402px;display:block;animation:towerGlow 1.3s infinite alternate}
+@keyframes towerGlow{from{filter:drop-shadow(0 0 14px #ffd23f)}to{filter:drop-shadow(0 0 40px #ffd23f) drop-shadow(0 0 18px #fff)}}
+.ftext h1{font-size:52px;margin:0 0 10px;color:var(--gold);text-shadow:5px 5px 0 #000;line-height:1.15}
+.ftext h2{font-size:34px;margin:0 0 8px}
+.ftext ul{list-style:none;padding:0;margin:0 0 18px}
+.ftext li{font-size:25px;font-weight:700;padding:6px 0 6px 44px;position:relative;line-height:1.25;animation:pop .5s backwards}
+.ftext li::before{content:"✅";position:absolute;left:0}
+.ftext li b{color:var(--gold)}
+
+/* ---------- overlay ---------- */
+#ov{position:absolute;inset:0;background:rgba(5,4,10,.78);display:flex;align-items:center;justify-content:center;z-index:50}
+.card{background:var(--panel);border:6px solid #000;box-shadow:inset 0 0 0 5px var(--line),0 12px 0 rgba(0,0,0,.5);padding:36px 50px;max-width:1500px;text-align:center;animation:pop .3s;display:flex;flex-direction:column;align-items:center;gap:22px}
+.ovh{font-size:40px;font-weight:900;color:var(--blue);text-shadow:3px 3px 0 #000}
+.ovh.fast{color:var(--orange)}
+.ovq{font-size:60px;font-weight:900;line-height:1.2;text-shadow:4px 4px 0 #000}
+.ovopts{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.ovopts div{font-size:40px;font-weight:800;background:var(--panel2);border:4px solid #000;padding:8px 22px}
+.ovhint{font-size:30px;color:var(--muted)}
+.ova{font-size:40px;font-weight:800;color:#e3ffe8;background:#174d27;border:4px solid #000;box-shadow:inset 0 0 0 3px var(--green);padding:18px 26px;line-height:1.3;animation:pop .35s}
+.ovbtns{display:flex;gap:18px}
+.card.reward{min-width:760px}
+.rwicon{width:180px;height:180px;animation:pop .6s, bob 1.4s .6s infinite}
+.rwword{font-size:96px;font-weight:900;color:var(--gold);text-shadow:5px 5px 0 #000;display:flex;align-items:center;gap:24px;letter-spacing:2px}
+.rwword .speak{width:80px;height:72px;font-size:38px}
+.rwua{font-size:48px;font-weight:800;margin-top:-14px}
+.flyer{position:absolute;z-index:60;pointer-events:none}
+#toast{position:absolute;left:50%;top:350px;transform:translateX(-50%);z-index:40;background:#0f0e16;border:4px solid #000;box-shadow:inset 0 0 0 3px var(--gold);padding:14px 30px;font-size:32px;font-weight:900;pointer-events:none;white-space:nowrap}
+#toast.show{animation:pop .3s}
+#confetti{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;z-index:70;display:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="top">
+    <div id="journey" class="panel">
+      <div class="jtitle">🧭 Подорож до Вежі Чарівника <small>Урок 6 · Компас пригод: карта і телепортація</small></div>
+      <button id="bSound" class="btn small" title="Увімкнути / вимкнути звук">🔊 Звук</button>
+      <div id="track"><svg id="paths"></svg></div>
+    </div>
+    <div id="backpack" class="panel">
+      <div class="bptitle">🎒 Рюкзак мандрівника</div>
+      <div id="bpSlots"></div>
+    </div>
+  </div>
+  <div id="field" class="panel">
+    <div id="play" class="hidden">
+      <div id="fhead"><div id="btitle"></div><div class="blab">Шкала біома:</div><div id="bbar"></div><div id="qcount"></div></div>
+      <div id="qtext"></div>
+      <div id="qbody"></div>
+      <div id="controls">
+        <button class="btn think" id="bThink">🤔 Як думаєте?</button>
+        <button class="btn reveal" id="bReveal">👀 Показати відповідь</button>
+        <button class="btn fast" id="bFast">⚡ Для швидких</button>
+        <div class="sp"></div>
+        <div class="keys" title="Клавіші: → далі, ← назад, R скинути біом">⌨ ← → R</div>
+        <button class="btn" id="bBack">← Назад</button>
+        <button class="btn next" id="bNext">Далі →</button>
+        <button class="btn" id="bReset">↺ Скинути біом</button>
+      </div>
+    </div>
+    <div id="screen"></div>
+  </div>
+  <div id="toast" class="hidden"></div>
+  <div id="ov" class="hidden"><div id="ovCard" class="card"></div></div>
+  <canvas id="confetti" width="1920" height="1080"></canvas>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Подорож до Вежі Чарівника — підсумкова гра уроку 6
+   Усі зображення намальовано кодом (canvas / SVG / CSS).
+   ===================================================================== */
+
+/* ---------------- утиліти ---------------- */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function tween(ms,fn,ease=easeIO){return new Promise(res=>{const t0=performance.now();function f(now){const t=Math.min(1,(now-t0)/ms);fn(ease(t),t);if(t<1)requestAnimationFrame(f);else res();}requestAnimationFrame(f);});}
+function rng(seed){let s=(seed>>>0)||1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
+const fmt=n=>n<0?'−'+Math.abs(n):String(n);
+function pl(n,a,b,c){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return c;if(d>1&&d<5)return b;if(d===1)return a;return c;}
+const kroky=n=>n+' '+pl(n,'крок','кроки','кроків');
+
+const STAGE=$('#stage');let SCALE=1;
+function fit(){SCALE=Math.min(innerWidth/1920,innerHeight/1080);STAGE.style.transform=`translate(-50%,-50%) scale(${SCALE})`;}
+addEventListener('resize',fit);fit();
+function stageRect(el){const r=el.getBoundingClientRect(),s=STAGE.getBoundingClientRect();return{x:(r.left-s.left)/SCALE,y:(r.top-s.top)/SCALE,w:r.width/SCALE,h:r.height/SCALE};}
+
+/* ---------------- піксельна графіка ---------------- */
+const PAL={k:'#1d1b2a',w:'#ffffff',W:'#d9d9e3',g:'#9a9aa8',G:'#5d5d6b',r:'#e8322f',R:'#9c1b1b',y:'#ffd23f',Y:'#c99a12',
+  b:'#8a5a2b',B:'#4a2e14',n:'#6b4423',s:'#f2c29b',e:'#1d1b2a',h:'#6a3fc1',H:'#9a6cf0',u:'#2f7fd8',U:'#7cc0ff',
+  c:'#3fbf4f',C:'#1f6a33',t:'#efe0b5',T:'#c7b37a',m:'#c76b5a',p:'#a0612a',P:'#c98a4a',l:'#9aa0ad',z:'#3b3f4a',v:'#5ff0f0',o:'#ff9a2e'};
+const SPR={
+ trav:["....kk......","...khhk.....","...khHhk....","..khhhyhk...","..khhhhhhk..",".khHhhhhhhk.","kkkkkkkkkkkk","..kssssssk..","..ksessesk..","..kssmmssk..",".kkuuUUuukk.","ksuuuUUuuusk","ksubbbbbbusk",".kuuuuuuuuk.","..kBBkkBBk..","..kkk..kkk.."],
+ travBack:["....kk......","...khhk.....","...khHhk....","..khhhyhk...","..khhhhhhk..",".khHhhhhhhk.","kkkkkkkkkkkk","..knnnnnnk..","..knnnnnnk..","..knnnnnnk..",".kkppPPppkk.","kspppPPpppsk","ksppppppppsk",".kuuuuuuuuk.","..kBBkkBBk..","..kkk..kkk.."],
+ arrowN:[".....kk.....","....krrk....","...krrrrk...","..krrrrrrk..",".krrrrrrrrk.","kkkkrrrrkkkk","...krrrrk...","...krrrrk...","...krrrrk...","...krrrrk...","...kRRRRk...","...kkkkkk..."],
+ compass:["...kkkkkk...","..kGggggGk..",".kgWWWWWWgk.","kgWWWWrrWWgk","kgWWWWrrWWgk","kgWWWrrWWWgk","kgWWWkkWWWgk","kgWWkkWWWWgk","kgWWkkWWWWgk",".kgWWWWWWgk.","..kGggggGk..","...kkkkkk..."],
+ coords:["kkkkkkkkkkkk","kwwwwwwwwrwk","kwrrrrrrrrrk","kwuwwgwwgrwk","kwuwwgwwgwwk","kwuggggggggk","kwuwwgwwgwwk","kwuwwgwwgwwk","kwuggggggggk","kuuuwgwwgwwk","kwuwwgwwgwwk","kkkkkkkkkkkk"],
+ star:[".....kk.....","....kyyk....","....kyyk....","kkkkyyyykkkk","kyyyyyyyyyyk",".kyyyYYyyyk.","..kyyYYyyk..","..kyyyyyyk..",".kyyykkyyyk.",".kyyk..kyyk.","kyyk....kyyk","kkk......kkk"],
+ map:["kkkkkkkkkkkk","ktttttttTttk","ktccttuuuttk","ktcCcttuutTk","kttcctttuttk","kTttttyttctk","kttuttttcCtk","ktuuutttcctk","ktuuttcttttk","kttttcCcttTk","ktTtttcttttk","kkkkkkkkkkkk"],
+ paper:["..kkkkkkkk..","..kwwwwwwk..","..kwggggwk..","..kwwwwwwk..","..kwggggwk..","..kwwwwwwk..","..kwgggwwk..","..kwwwwwwk..","..kwggggwk..","..kwwwwwwk..","..kwwwwwwk..","..kkkkkkkk.."],
+ lode:["kkkkkkkkkkkk","kgggglgggggk","kgzzzlzzzzgk","kgzllllllzgk","klllzzzzlllk","kgzlzggzlzgk","kgzlzggzlzgk","klllzzzzlllk","kgzllllllzgk","kgzzzlzzzzgk","kgggglgggggk","kkkkkkkkkkkk"],
+ portal:["..kkkkkkkk..",".khhhhhhhhk.","khHHHHHHHHhk","khHhhhhhhHhk","khHhHHHHhHhk","khHhHvvHhHhk","khHhHvvHhHhk","khHhHHHhhHhk","khHhhhhhHHhk","khHHHHHHHhhk",".khhhhhhhhk.","..kkkkkkkk.."],
+ cactus:["....cc....","...cCCc...","...cCCc.c.",".c.cCCc.cC",".cCcCCc.cC",".cCcCCcccC",".cccCCcCC.","...cCCcC..","...cCCc...","...cCCc...","..TTTTTT..","..TTTTTT.."],
+ chest:["kkkkkkkkkkkk","kPPPPPPPPPPk","kppppppppppk","kppppppppppk","kkkkkyykkkkk","kPPPPyyPPPPk","kppppkkppppk","kppppppppppk","kppppppppppk","kkkkkkkkkkkk"],
+ chestOpen:["kkkkkkkkkkkk","kPPPPPPPPPPk","kkkkkkkkkkkk","kuUuUuUuUuuk","kkkkkyykkkkk","kPPPPyyPPPPk","kppppkkppppk","kppppppppppk","kppppppppppk","kkkkkkkkkkkk"],
+ drop:["...kk...","..kUUk..","..kUuk..",".kUuuuk.",".kUuuuk.","kUuuuuuk","kUuuuuuk","kuuuuuuk",".kuuuuk.","..kkkk.."],
+ bed:["kkkkkkkkkkkk","kwwwkrrrrrrk","kwwwkrRrrRrk","kkkkkkkkkkkk","kbbbbbbbbbbk","kb........bk","kk........kk"],
+ spruce:["....CC....","...CCCC...","..CwCCwC..","...CCCC...","..CCCCCC..",".CwCCCCwC.","..CCCCCC..",".CCCCCCCC.","CwCCCCCCwC","....nn....","....nn....","....nn...."],
+ rock:["..kkkk..",".kglggk.","kglgggGk","kggggGGk","kgGgGGGk",".kkkkkk."]
+};
+const _spr={};
+function spr(name){
+  if(_spr[name])return _spr[name];
+  const rows=SPR[name],w=Math.max(...rows.map(r=>r.length)),h=rows.length;
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const ch=r[i];if(ch!=='.'&&PAL[ch]){x.fillStyle=PAL[ch];x.fillRect(i,j,1,1);}}});
+  return _spr[name]=c.toDataURL();
+}
+function img(name,w,h){const rows=SPR[name];if(!h)h=Math.round(w*rows.length/Math.max(...rows.map(r=>r.length)));return `<img class="pix" src="${spr(name)}" style="width:${w}px;height:${h}px" alt="">`;}
+function tex(pal,n,seed,fn){const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');const r=rng(seed);
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){x.fillStyle=fn?fn(i,j,r):pal[Math.floor(r()*pal.length)];x.fillRect(i,j,1,1);}return c.toDataURL();}
+const TEX={
+  sand:tex(['#f2d58a','#ecca72','#f6e0a0','#e5c068','#f0d080'],16,3),
+  snow:tex(['#ffffff','#f1f6ff','#e4edfa','#f8fbff','#dde8f7'],16,5),
+  grass:tex(['#5cb85c','#4fa84f','#67c267','#4a9e4a','#58b058'],16,7),
+  swamp:tex(['#4f6b3a','#5a7842','#46613a','#3f5a33','#557040'],16,9),
+  mount:tex(['#8a9a7a','#7f8f70','#96a386','#a0a6a0','#8f9688'],16,15),
+  planks:tex(null,16,17,(i,j,r)=>{const row=Math.floor(j/4);const seam=j%4===3||(i+row*5)%16===0;return seam?'#5e3c18':['#a0703c','#9a6a36','#a87840'][Math.floor(r()*3)];}),
+  panel:tex(['#262335','#2a2639','#232032','#28243a'],16,19),
+  parch:tex(['#f3e6c0','#efe0b5','#f6ebcb','#e9d9a8'],16,21)
+};
+document.documentElement.style.setProperty('--tpanel',`url(${TEX.panel})`);
+document.documentElement.style.setProperty('--tplanks',`url(${TEX.planks})`);
+document.documentElement.style.setProperty('--tparch',`url(${TEX.parch})`);
+
+/* вежа (власний дизайн) */
+function drawTower(R,N,cx,ground,h,stars){
+  const bodyTop=ground-Math.round(h*.6);
+  N(cx-6,bodyTop,12,ground-bodyTop,['#8d8d9c','#7b7b8a','#9d9dab','#84849a']);
+  for(let y=bodyTop+3;y<ground;y+=4)R(cx-6,y,12,1,'#5d5d6b');
+  R(cx-8,bodyTop-2,16,2,'#6f6f7e');for(let i=0;i<16;i+=4)R(cx-8+i,bodyTop-4,2,2,'#6f6f7e');
+  const rh=Math.round(h*.4)-4;
+  for(let i=0;i<rh;i++){const w=Math.max(1,Math.round((i+1)/rh*7));R(cx-w,bodyTop-4-rh+i,w*2,1,i%3===0?'#9a6cf0':'#6a3fc1');}
+  R(cx-1,Math.max(0,bodyTop-6-rh),2,2,'#ffd23f');
+  for(let y=bodyTop+4;y<ground-9;y+=9)R(cx-2,y,4,4,'#ffd23f');
+  R(cx-2,ground-6,4,6,'#5a3815');
+}
+let _tower=null;
+function towerBig(){
+  if(_tower)return _tower;
+  const c=document.createElement('canvas');c.width=40;c.height=70;const x=c.getContext('2d');const r=rng(77);
+  const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
+  const N=(a,b,w,h,p)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++){x.fillStyle=p[Math.floor(r()*p.length)];x.fillRect(a+i,b+j,1,1);}};
+  drawTower(R,N,20,70,68);return _tower=c.toDataURL();
+}
+/* сцени біомів для карти подорожі */
+function scene(kind){
+  const W=41,H=38,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');const r=rng(kind.charCodeAt(0)*131+kind.length*7);
+  const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
+  const N=(a,b,w,h,p)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++){x.fillStyle=p[Math.floor(r()*p.length)];x.fillRect(a+i,b+j,1,1);}};
+  const sky=(c1,c2)=>{R(0,0,W,H,c2);R(0,0,W,11,c1);};
+  const cloud=(a,b)=>{R(a,b,7,2,'#fff');R(a+2,b-1,3,1,'#fff');};
+  const G=27;
+  if(kind==='forest'){
+    sky('#6fbfff','#9fd6ff');cloud(4,5);cloud(27,8);
+    N(0,G,W,2,['#4caf50','#5cc05f','#3e9a42']);N(0,G+2,W,H-G-2,['#8a5a2b','#7a4c22','#94653a']);
+    const tree=(tx,hh)=>{R(tx,G-hh,2,hh,'#6b4423');N(tx-3,G-hh-6,8,7,['#2e8b3a','#3fa34a','#237030']);R(tx-3,G-hh-6,1,1,'#9fd6ff');R(tx+4,G-hh-6,1,1,'#9fd6ff');};
+    tree(6,5);tree(19,8);tree(33,4);R(26,G-3,1,3,'#fff');R(25,G-4,3,1,'#ff5a5a');
+  }else if(kind==='desert'){
+    sky('#ffd98a','#ffe9b8');R(31,3,6,6,'#fff2a0');R(32,4,4,4,'#ffe14d');
+    N(0,G,W,H-G,['#f2d58a','#ecca72','#f6e0a0','#e5c068']);N(0,G-2,13,2,['#f2d58a','#ecca72']);N(22,G-1,12,1,['#f2d58a','#ecca72']);
+    const cac=(cx,hh)=>{R(cx,G-hh,3,hh,'#2f9e44');R(cx+1,G-hh,1,hh,'#3fbf55');R(cx-2,G-hh+4,2,1,'#2f9e44');R(cx-2,G-hh+1,1,4,'#2f9e44');R(cx+3,G-hh+5,2,1,'#2f9e44');R(cx+4,G-hh+2,1,4,'#2f9e44');};
+    cac(8,11);cac(27,8);
+  }else if(kind==='taiga'){
+    sky('#bcdcff','#dceeff');for(let i=0;i<14;i++)R(Math.floor(r()*W),Math.floor(r()*24),1,1,'#fff');
+    N(0,G,W,H-G,['#ffffff','#eef4ff','#e2ecfa']);
+    const spruce=(tx,hh)=>{R(tx,G-2,2,2,'#5a3815');const y0=G-2-hh;for(let i=0;i<hh;i++){const hw=1+Math.floor(i/2.4)-(i%4===3?1:0);R(tx+1-hw,y0+i,hw*2,1,'#1f5d3a');if(i%4===0&&i>0){R(tx+1-hw,y0+i,1,1,'#fff');R(tx+hw,y0+i,1,1,'#fff');}}R(tx,y0,2,1,'#fff');};
+    spruce(6,14);spruce(19,19);spruce(32,12);
+  }else if(kind==='swamp'){
+    sky('#8fae8a','#b7cdb0');N(0,G-1,W,2,['#4f6b3a','#5a7842']);N(0,G+1,W,H-G-1,['#3d6b5f','#355f54','#46786a']);
+    R(5,G+4,3,1,'#7ccf5a');R(26,G+7,3,1,'#7ccf5a');R(14,G+9,2,1,'#7ccf5a');R(33,G+3,2,1,'#7ccf5a');
+    R(19,G-10,3,11,'#5a4a2a');N(10,G-15,21,4,['#3f6b2a','#4a7a30','#355c24']);
+    R(11,G-11,1,5,'#2f5a1f');R(16,G-11,1,3,'#2f5a1f');R(25,G-11,1,6,'#2f5a1f');R(29,G-11,1,4,'#2f5a1f');
+  }else if(kind==='savanna'){
+    sky('#ffc977','#ffe0a3');R(5,4,5,5,'#fff2a0');
+    N(0,G,W,H-G,['#bfae5a','#b3a24e','#c9b866','#a8984a']);
+    const aca=(tx)=>{for(let i=0;i<9;i++)R(tx+Math.floor(i/3),G-1-i,2,1,'#7a5a3a');N(tx-4,G-12,14,2,['#6b8e23','#7da32b','#5a7a1d']);N(tx-2,G-13,10,1,['#6b8e23','#7da32b']);};
+    aca(6);aca(25);R(18,G-2,1,2,'#8a9a3a');R(36,G-2,1,2,'#8a9a3a');
+  }else if(kind==='mount'){
+    sky('#9cc6f0','#c5ddf6');cloud(16,4);
+    const peak=(cx,top,sc)=>{for(let y=top;y<H;y++){const hw=Math.floor((y-top)*sc);for(let i=-hw;i<=hw;i++){x.fillStyle=y-top<4?(r()<.85?'#ffffff':'#dde6f0'):['#8a8a96','#7d7d89','#9696a2','#71717d'][Math.floor(r()*4)];x.fillRect(cx+i,y,1,1);}}};
+    peak(10,9,1.1);peak(29,5,1.15);peak(41,13,1);
+    N(0,G+4,W,H-G-4,['#6f7f60','#7f8f70']);
+  }else if(kind==='tower'){
+    sky('#2c2152','#3e2f6e');for(let i=0;i<16;i++)R(Math.floor(r()*W),Math.floor(r()*26),1,1,'#ffe98a');
+    N(0,33,W,5,['#5d5d6b','#4b4b58']);drawTower(R,N,20,33,34);
+  }
+  return c.toDataURL();
+}
+
+/* ---------------- звук (Web Audio) ---------------- */
+let actx=null,muted=false;
+function AC(){if(!actx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;try{actx=new C();}catch(e){return null;}}if(actx.state==='suspended')actx.resume();return actx;}
+function tone(f,d,type='square',v=.06,t0=0,f2=0){
+  if(muted)return;const a=AC();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05);
+}
+const sfx={
+  click:()=>tone(880,.06,'square',.03),
+  coin:()=>{tone(988,.08,'square',.05);tone(1319,.18,'square',.05,.08);},
+  ok:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.16,'square',.05,i*.09)),
+  no:()=>{tone(392,.16,'triangle',.09);tone(330,.24,'triangle',.09,.14);},
+  step:()=>tone(170+Math.random()*50,.06,'square',.03),
+  bump:()=>tone(140,.22,'sawtooth',.05,0,70),
+  tp:()=>{tone(300,.55,'sine',.09,0,1800);tone(600,.5,'triangle',.04,.12,2400);},
+  whoosh:()=>tone(900,.4,'sine',.05,0,200),
+  reward:()=>[392,523,659,784,1047].forEach((f,i)=>tone(f,.2,'square',.05,i*.1)),
+  win:()=>[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.24,'square',.06,i*.15))
+};
+$('#bSound').onclick=()=>{muted=!muted;$('#bSound').textContent=muted?'🔇 Без звуку':'🔊 Звук';if(!muted)sfx.click();};
+
+/* ---------------- вимова (Web Speech API) ---------------- */
+let ttsOK=false,enVoice=null;
+function setTTS(ok){ttsOK=ok;document.body.classList.toggle('no-tts',!ok);}
+function initTTS(){
+  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){setTTS(false);return;}
+  const upd=()=>{const vs=speechSynthesis.getVoices()||[];enVoice=vs.find(v=>v.lang==='en-US')||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;setTTS(!!enVoice);};
+  upd();if(speechSynthesis.addEventListener)speechSynthesis.addEventListener('voiceschanged',upd);else speechSynthesis.onvoiceschanged=upd;
+}
+function speak(t){if(!ttsOK)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(enVoice)u.voice=enVoice;u.rate=.85;speechSynthesis.speak(u);}catch(e){}}
+const speakAuto=t=>{if(!muted)speak(t);};
+initTTS();
+STAGE.addEventListener('click',e=>{const b=e.target.closest('.speak');if(b){speak(b.dataset.say);}});
+STAGE.addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTimeout(()=>b.blur(),0);},true);
+
+/* ---------------- спільні компоненти ---------------- */
+const DIRS={N:{en:'North',ua:'Північ'},S:{en:'South',ua:'Південь'},E:{en:'East',ua:'Схід'},W:{en:'West',ua:'Захід'}};
+const DV={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+
+function makeGrid(o){
+  const c=o.cell,nx=o.x1-o.x0+1,nz=o.z1-o.z0+1,LW=o.labels?(o.lw||44):0,LH=o.labels?32:0;
+  const el=document.createElement('div');el.className='cgrid';
+  el.style.width=(LW+nx*c+8+64)+'px';el.style.height=(LH+nz*c+8+(o.labels?32:0))+'px';
+  let h='';
+  if(o.labels){
+    for(let i=0;i<nx;i++){const v=o.x0+i;h+=`<div class="lx${v===0?' z0':''}" style="left:${LW+4+i*c}px;top:0;width:${c}px;height:${LH}px">${fmt(o.fx?o.fx(v):v)}</div>`;}
+    for(let j=0;j<nz;j++){const v=o.z0+j;h+=`<div class="lz${v===0?' z0':''}" style="left:0;top:${LH+4+j*c}px;width:${LW}px;height:${c}px">${fmt(o.fz?o.fz(v):v)}</div>`;}
+    h+=`<div class="axn" style="left:${LW+nx*c+14}px;top:0;height:${LH}px">X →</div><div class="axn" style="left:2px;top:${LH+nz*c+10}px">Z ↓</div>`;
+  }
+  h+=`<div class="nb" style="left:${LW+nx*c+16}px;top:${LH+8}px">↑<b>N</b></div>`;
+  h+=`<div class="cells" style="left:${LW}px;top:${LH}px;grid-template-columns:repeat(${nx},${c}px);grid-auto-rows:${c}px;--t:url(${o.tex})">`;
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const x=o.x0+i,z=o.z0+j;h+=`<div class="cell${o.axis&&(x===0||z===0)?' ax':''}" data-x="${x}" data-z="${z}"></div>`;}
+  h+='<div class="ents"></div></div>';
+  el.innerHTML=h;
+  const cells=el.querySelector('.cells'),ents=el.querySelector('.ents');
+  const pos=(x,z)=>({left:(x-o.x0)*c,top:(z-o.z0)*c});
+  const put=(e,x,z)=>{const p=pos(x,z);e.style.left=p.left+'px';e.style.top=p.top+'px';};
+  const jump=(e,x,z)=>{e.style.transition='none';put(e,x,z);void e.offsetWidth;e.style.transition='';};
+  const add=(e,x,z)=>{e.style.width=c+'px';e.style.height=c+'px';e.style.transition='none';put(e,x,z);ents.appendChild(e);void e.offsetWidth;e.style.transition='';return e;};
+  const inside=(x,z)=>x>=o.x0&&x<=o.x1&&z>=o.z0&&z<=o.z1;
+  return{el,cells,ents,pos,put,jump,add,inside,c};
+}
+function ent(html,cls=''){const d=document.createElement('div');d.className='ent '+cls;d.innerHTML=html;return d;}
+const travHTML=c=>`<img class="pix" src="${spr('trav')}" style="height:${Math.round(c*.92)}px;width:${Math.round(c*.69)}px">`;
+function makeSign(g){const s=document.createElement('div');s.className='sign';s.innerHTML='X = <b class="sx">0</b>, Z = <b class="sz">0</b>';g.ents.appendChild(s);return s;}
+function placeSign(g,s,x,z,fx=1){const p=g.pos(x,z);s.style.left=(p.left+g.c/2)+'px';s.style.top=(p.top-2)+'px';s.querySelector('.sx').textContent=fmt(x*fx);s.querySelector('.sz').textContent=fmt(z*fx);}
+function hl(el){el.classList.remove('hl');void el.offsetWidth;el.classList.add('hl');}
+function burst(g,x,z,col='#c08cff'){
+  const p=g.pos(x,z);
+  for(let i=0;i<14;i++){const d=document.createElement('div');d.className='particle';d.style.background=i%3?col:'#fff';d.style.left=(p.left+g.c/2-5)+'px';d.style.top=(p.top+g.c/2-5)+'px';g.ents.appendChild(d);
+    const a=i/14*Math.PI*2,rr=40+Math.random()*30;d.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${Math.cos(a)*rr}px,${Math.sin(a)*rr}px) scale(.2)`,opacity:0}],{duration:600,easing:'ease-out'}).onfinish=()=>d.remove();}
+}
+async function tpAnim(g,el,from,to){
+  burst(g,from[0],from[1]);
+  await el.animate([{transform:'scale(1) rotate(0deg)',opacity:1},{transform:'scale(.1) rotate(200deg)',opacity:0}],{duration:420,fill:'forwards'}).finished;
+  g.jump(el,to[0],to[1]);burst(g,to[0],to[1],'#5ff0f0');
+  await el.animate([{transform:'scale(.1) rotate(-200deg)',opacity:0},{transform:'scale(1) rotate(0deg)',opacity:1}],{duration:420,fill:'forwards'}).finished;
+}
+function makeStepper(host,{label,min,max,step=1,val=0,onChange}){
+  host.insertAdjacentHTML('beforeend',`<div class="stepper"><button class="sb" aria-label="менше">−</button><div class="sv"><span class="ax">${label}</span>&nbsp;=<b>${fmt(val)}</b></div><button class="sb" aria-label="більше">+</button></div>`);
+  const el=host.lastElementChild,[m,p]=el.querySelectorAll('.sb'),b=el.querySelector('b');let v=val;
+  const set=n=>{v=Math.max(min,Math.min(max,n));b.textContent=fmt(v);m.disabled=v<=min;p.disabled=v>=max;if(onChange)onChange(v);};
+  m.onclick=()=>{set(v-step);sfx.click();};p.onclick=()=>{set(v+step);sfx.click();};set(v);
+  return{get:()=>v,set,el};
+}
+function mcOptions(api,host,opts,correct,onCorrect,wrongMsgs){
+  host.innerHTML=opts.map((o,i)=>`<button class="opt" data-i="${i}"><b>${'АБВГ'[i]})</b>${o}</button>`).join('');
+  let locked=false;
+  const pick=i=>{if(locked)return;const b=host.children[i];
+    if(i===correct){locked=true;b.classList.add('right');onCorrect();}
+    else{b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');api.wrong(wrongMsgs[i]);}};
+  host.onclick=e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.i);};
+  return{pick,correct:()=>pick(correct)};
+}
+
+/* =====================================================================
+   БІОМ 1 — Ліс Академії: «Компас мандрівника»
+   ===================================================================== */
+function rcompassSVG(){
+  const L={N:[250,100],S:[250,400],E:[400,250],W:[100,250]};
+  const wedge=a=>{const r=200,p=an=>`${(250+r*Math.sin(an)).toFixed(1)},${(250-r*Math.cos(an)).toFixed(1)}`;return `M250,250 L${p((a-45)*Math.PI/180)} A${r},${r} 0 0 1 ${p((a+45)*Math.PI/180)} Z`;};
+  let ticks='';for(let i=0;i<16;i++){if(i%4===0)continue;const an=i*22.5*Math.PI/180;ticks+=`<line x1="${250+186*Math.sin(an)}" y1="${250-186*Math.cos(an)}" x2="${250+202*Math.sin(an)}" y2="${250-202*Math.cos(an)}" stroke="#1d1b2a" stroke-width="5"/>`;}
+  return `<svg viewBox="0 0 500 500" class="rcomp">
+  <circle cx="250" cy="250" r="244" fill="#b8862b" stroke="#1d1b2a" stroke-width="8"/>
+  <circle cx="250" cy="250" r="226" fill="#e2b04a" stroke="#7a5512" stroke-width="4"/>
+  <circle cx="250" cy="250" r="204" fill="#fff8e6" stroke="#1d1b2a" stroke-width="5"/>
+  ${['N','E','S','W'].map((d,i)=>`<path class="wedge" id="wg${d}" d="${wedge(i*90)}"/>`).join('')}
+  ${ticks}
+  <g id="rose">
+    <polygon points="250,160 270,250 230,250" fill="#e8322f" stroke="#1d1b2a" stroke-width="4"/>
+    <polygon points="250,340 270,250 230,250" fill="#5d5d6b" stroke="#1d1b2a" stroke-width="4"/>
+    <polygon points="160,250 250,230 250,270" fill="#9a9aa8" stroke="#1d1b2a" stroke-width="4"/>
+    <polygon points="340,250 250,230 250,270" fill="#9a9aa8" stroke="#1d1b2a" stroke-width="4"/>
+    <circle cx="250" cy="250" r="14" fill="#ffd23f" stroke="#1d1b2a" stroke-width="4"/>
+  </g>
+  <g id="travC" style="display:none">
+    <polygon points="250,158 270,190 230,190" fill="#ffd23f" stroke="#1d1b2a" stroke-width="4"/>
+    <image href="${spr('travBack')}" x="217" y="196" width="66" height="88" style="image-rendering:pixelated"/>
+  </g>
+  ${Object.entries(L).map(([d,[x,y]])=>`<g class="dl" data-d="${d}"><circle cx="${x}" cy="${y}" r="52" class="dlc"/><text x="${x}" y="${y+3}" class="dlt${d==='N'?' n':''}">${d}</text></g>`).join('')}
+</svg>`;
+}
+const RELS=[['front','⬆','Попереду'],['back','⬇','За спиною'],['right','➡','Праворуч'],['left','⬅','Ліворуч']];
+function b1Layout(api,withRels){
+  api.body.innerHTML=`<div class="b1"><div class="b1c">${rcompassSVG()}</div><div class="b1r"><div class="b1top">
+    <div class="words">${['N','S','E','W'].map(d=>`<div class="word" data-d="${d}"><span class="wl${d==='N'?' n':''}">${d}</span><span class="we">${DIRS[d].en}</span><span class="wu">— ${DIRS[d].ua}</span><button class="speak" data-say="${DIRS[d].en}" title="Вимовити">🔊</button></div>`).join('')}</div>
+    ${withRels?`<div class="rels"><div class="rtitle">🧍 Мандрівник дивиться на North</div>${RELS.map(([c,a,t])=>`<div class="rel ${c}"><span class="ra">${a}</span>${t}: <b>?</b> <i></i></div>`).join('')}</div>`:''}
+  </div><div class="fb"></div></div></div>`;
+  const b=api.body;
+  const ctl={
+    found:d=>{b.querySelector(`.dl[data-d="${d}"]`).classList.add('found');b.querySelector(`.word[data-d="${d}"]`).classList.add('on');},
+    wordsOn:()=>$$('.word',b).forEach(w=>w.classList.add('on')),
+    trav:()=>{b.querySelector('#rose').style.display='none';b.querySelector('#travC').style.display='';},
+    side:(rel,d)=>{const map={front:'N',back:'S',right:'E',left:'W'};b.querySelector('#wg'+map[rel]).setAttribute('class','wedge '+rel);const r=b.querySelector('.rel.'+rel);r.classList.add('on');r.querySelector('b').textContent=DIRS[d].en;r.querySelector('i').textContent=DIRS[d].ua;},
+    bad:d=>{const g=b.querySelector(`.dl[data-d="${d}"]`);g.classList.add('bad');setTimeout(()=>g.classList.remove('bad'),500);},
+    onDir:fn=>$$('.dl',b).forEach(g=>g.addEventListener('click',()=>fn(g.dataset.d)))
+  };
+  return ctl;
+}
+const B1Q=[
+ {prompt:'Де North? Покажіть на компасі!',answer:'North — червона літера N угорі. А ще: S — South, E — East, W — West.',
+  mount(api){
+    const ctl=b1Layout(api,false),order=['N','S','E','W'],P=['Де North? Покажіть на компасі!','А де South?','А де East?','А де West?'];let k=0;
+    if(api.solved){order.forEach(ctl.found);k=4;}
+    const click=d=>{
+      if(k>=4){api.info(`${d} — ${DIRS[d].en} (${DIRS[d].ua}).`);speakAuto(DIRS[d].en);return;}
+      const t=order[k];
+      if(d===t){ctl.found(d);speakAuto(DIRS[d].en);k++;
+        if(k===4){api.setPrompt('Молодці! Усі чотири сторони знайдено!');api.solve('North, South, East, West — усі сторони горизонту знайдено!');}
+        else{api.info(`✅ ${DIRS[d].en} — ${DIRS[d].ua}! А тепер знайдіть ${DIRS[order[k]].en}.`);sfx.coin();api.setPrompt(P[k]);}
+      }else{ctl.bad(d);api.wrong(`Це ${d} — ${DIRS[d].en} (${DIRS[d].ua}). А ми шукаємо ${DIRS[t].en}!${t==='N'?' Підказка: North — червона літера.':''}`);}
+    };
+    ctl.onDir(click);
+    return{reveal(){const run=()=>{if(!api.alive()||k>=4)return;click(order[k]);if(k<4)setTimeout(run,750);};run();}};
+  }},
+ {prompt:'Мандрівник дивиться на North. Що в нього за спиною?',answer:'South — Південь.',
+  mount(api){
+    const ctl=b1Layout(api,true);ctl.wordsOn();ctl.trav();ctl.side('front','N');
+    if(api.solved)ctl.side('back','S');
+    const click=d=>{
+      if(d==='S'){ctl.side('back','S');ctl.found('S');speakAuto('South');api.solve('Так! За спиною — South (Південь). Це протилежна сторона від North.');}
+      else if(d==='N'){ctl.bad(d);api.wrong('North — попереду, туди він дивиться. А що за спиною?');}
+      else{ctl.bad(d);api.wrong(`${DIRS[d].en} — це збоку. За спиною — протилежна сторона від North!`);}
+    };
+    ctl.onDir(click);return{reveal:()=>click('S')};
+  }},
+ {prompt:'Мандрівник дивиться на North. А що праворуч?',answer:'Праворуч — East (Схід), ліворуч — West (Захід).',
+  mount(api){
+    const ctl=b1Layout(api,true);ctl.wordsOn();ctl.trav();ctl.side('front','N');ctl.side('back','S');
+    const T=['E','W'],REL=['right','left'];let k=0;
+    if(api.solved){ctl.side('right','E');ctl.side('left','W');k=2;}
+    const click=d=>{
+      if(k>=2){api.info(`${d} — ${DIRS[d].en} (${DIRS[d].ua}).`);return;}
+      if(d===T[k]){ctl.side(REL[k],d);ctl.found(d);speakAuto(DIRS[d].en);k++;
+        if(k===2){api.setPrompt('Праворуч — East, ліворуч — West!');api.solve('Праворуч — East (Схід), ліворуч — West (Захід)!');}
+        else{sfx.coin();api.info('✅ Праворуч — East (Схід)! А що ліворуч?');api.setPrompt('А що ліворуч?');}
+      }else{ctl.bad(d);
+        if(k===0)api.wrong(d==='W'?'West — це ліворуч. Покажіть праву руку! 👉':'Праворуч — це збоку, не попереду і не позаду.');
+        else api.wrong(d==='E'?'East — праворуч. А тепер ліва рука! 👈':'Ліворуч — це збоку, не попереду і не позаду.');}
+    };
+    ctl.onDir(click);
+    return{reveal(){click(T[k]);setTimeout(()=>{if(api.alive()&&k<2)click(T[k]);},800);}};
+  }}
+];
+
+/* =====================================================================
+   БІОМ 2 — Пустеля: «Маршрут без карти»   (координати сітки: [x, z], North = вгору)
+   ===================================================================== */
+const MAZES=[
+  {start:[1,5],chest:[4,2],cacti:[]},
+  {start:[1,5],chest:[5,1],cacti:[[1,3],[3,1],[4,4]]}
+];
+function bfs(m){
+  const key=(x,z)=>x+','+z,blocked=new Set(m.cacti.map(c=>key(...c))),prev={[key(...m.start)]:null},q=[m.start];
+  while(q.length){const[x,z]=q.shift();if(x===m.chest[0]&&z===m.chest[1])break;
+    for(const d of['N','E','S','W']){const nx=x+DV[d][0],nz=z+DV[d][1],k=key(nx,nz);
+      if(nx<0||nz<0||nx>6||nz>6||blocked.has(k)||k in prev)continue;prev[k]={from:key(x,z),d};q.push([nx,nz]);}}
+  const path=[];let k=key(...m.chest);while(prev[k]){path.unshift(prev[k].d);k=prev[k].from;}return path;
+}
+function pathSummary(p){const cnt={};p.forEach(d=>cnt[d]=(cnt[d]||0)+1);return Object.entries(cnt).map(([d,n])=>`${n} на ${DIRS[d].en}`).join(' і ');}
+function b2Mount(mi){return function(api){
+  const m=MAZES[mi],body=api.body,bs=api.bs;bs.rec=bs.rec||[null,null];
+  const short=bfs(m).length;
+  body.innerHTML=`<div class="b2"><div class="gw"></div>
+    <div class="pad">
+      ${['N','W','E','S'].map(d=>`<button class="pb p${d}" data-d="${d}"><b>${d}</b><span>${DIRS[d].en}</span><i>${DIRS[d].ua}</i></button>`).join('')}
+      <div class="pc">🧭</div>
+    </div>
+    <div class="rp"><div class="rlab">Маршрут <small>— картки стають у ряд, як блоки коду</small></div><div class="route"></div>
+      <div class="rbtns"><button class="btn rx">✕ Прибрати останню</button><button class="btn rclr">🗑 Очистити</button><button class="btn next big rgo">▶ Іти</button></div>
+      <div class="stats"></div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:0,x1:6,z0:0,z1:6,cell:64,tex:TEX.sand});
+  body.querySelector('.gw').appendChild(g.el);
+  const cacEls={};m.cacti.forEach(([x,z])=>{cacEls[x+','+z]=g.add(ent(img('cactus',46,55),'mid'),x,z);});
+  const chest=g.add(ent(img('chest',52,43),'mid'),...m.chest);
+  const tr=g.add(ent(travHTML(64),'trav'),...m.start);
+  let route=[],running=false;
+  const draw=()=>{
+    body.querySelector('.route').innerHTML=route.length?route.map((d,i)=>`<div class="rc d${d}" data-i="${i}"><b>${d}</b><i>${DIRS[d].en}</i></div>`).join(''):'<div class="rempty">Тут з’являться картки маршруту. Натискайте N, S, W, E.</div>';
+    const rec=bs.rec[mi];
+    body.querySelector('.stats').innerHTML=`Кроків у маршруті: <b>${route.length}</b> &nbsp;·&nbsp; 🏆 Рекорд класу: <b>${rec?kroky(rec):'—'}</b>`;
+  };
+  const resetPos=()=>{g.jump(tr,...m.start);$$('.foot',g.ents).forEach(f=>f.remove());chest.innerHTML=img('chest',52,43);$$('.rc',body).forEach(c=>c.classList.remove('on','bad'));};
+  const add=d=>{if(running)return;if(route.length>=20){api.info('Маршрут дуже довгий! Спробуйте коротший.');return;}route.push(d);sfx.click();resetPos();draw();};
+  body.querySelector('.pad').onclick=e=>{const b=e.target.closest('.pb');if(b)add(b.dataset.d);};
+  body.querySelector('.rx').onclick=()=>{if(running||!route.length)return;route.pop();sfx.click();resetPos();draw();};
+  body.querySelector('.rclr').onclick=()=>{if(running)return;route=[];sfx.click();resetPos();draw();};
+  const bump=(dx,dz)=>{sfx.bump();tr.firstElementChild.animate([{transform:'translate(0,0)'},{transform:`translate(${dx*20}px,${dz*20}px)`},{transform:'translate(0,0)'}],{duration:340});};
+  const go=async()=>{
+    if(running)return;if(!route.length){api.info('Спершу складіть маршрут: натискайте N, S, W, E!');return;}
+    running=true;body.firstElementChild.classList.add('running');resetPos();
+    let[x,z]=m.start,result='end',steps=0;await sleep(250);
+    const cards=$$('.rc',body);
+    for(let i=0;i<route.length;i++){
+      if(!api.alive())return;
+      cards.forEach(c=>c.classList.remove('on'));cards[i].classList.add('on');
+      const[dx,dz]=DV[route[i]],nx=x+dx,nz=z+dz;
+      if(!g.inside(nx,nz)){bump(dx,dz);cards[i].classList.add('bad');result='edge';break;}
+      const ce=cacEls[nx+','+nz];
+      if(ce){bump(dx,dz);cards[i].classList.add('bad');ce.classList.remove('flash');void ce.offsetWidth;ce.classList.add('flash');result='cactus';break;}
+      g.add(ent('','foot'),x,z);x=nx;z=nz;g.put(tr,x,z);sfx.step();await sleep(440);
+      if(x===m.chest[0]&&z===m.chest[1]){result='win';steps=i+1;break;}
+    }
+    if(!api.alive())return;
+    if(result==='win'){
+      chest.innerHTML=img('chestOpen',52,43)+`<div class="drop">${img('drop',26,32)}</div>`;
+      if(!bs.rec[mi]||steps<bs.rec[mi])bs.rec[mi]=steps;draw();
+      $$('.rc',body).forEach((c,i)=>c.classList.toggle('on',i<steps));
+      api.solve(`Ура! Скриня з водою! 💧 Маршрут: ${kroky(steps)}.${steps===short?' Це найкоротший маршрут! 🏆':''}${steps<route.length?' (Решта карток не знадобилась.)':''}`);
+    }else if(result==='cactus')api.wrong('Тут кактус! 🌵 Змініть маршрут.');
+    else if(result==='edge')api.wrong('Тут край карти! Змініть маршрут.');
+    else api.info('Маршрут закінчився, а до скрині ще не дійшли. Додайте напрямки!');
+    running=false;body.firstElementChild.classList.remove('running');
+  };
+  body.querySelector('.rgo').onclick=go;
+  draw();
+  return{reveal(){if(running)return;route=bfs(m);resetPos();draw();setTimeout(()=>{if(api.alive())go();},500);}};
+};}
+
+/* =====================================================================
+   БІОМ 3 — Сніжна тайга: «Координати сторін світу»
+   ===================================================================== */
+const RULES_HTML=`<div class="rule"><span class="ra">➡</span><b>East</b> — X <em>більшає</em> (+)</div><div class="rule"><span class="ra">⬅</span><b>West</b> — X <u>меншає</u> (−)</div><div class="rule"><span class="ra">⬆</span><b>North</b> — Z <u>меншає</u> (−)</div><div class="rule"><span class="ra">⬇</span><b>South</b> — Z <em>більшає</em> (+)</div>`;
+const B3Q=[
+  {d:'E',n:3,axis:'X',ans:3,prompt:'Мандрівник іде 3 кроки на East. Яким стане X?',answer:'X = 3. East — X більшає: 0 + 3 = 3.',
+   ok:'East — X більшає: 0 + 3 = 3.',hint:v=>v===-3?'Ой! East — це праворуч, і X більшає. Тому без мінуса!':'Не зовсім. 3 кроки на East — праворуч від нуля. Порахуйте клітинки!'},
+  {d:'W',n:2,axis:'X',ans:-2,prompt:'Мандрівник іде 2 кроки на West. Яким стане X?',answer:'X = −2. West — X меншає: 0 − 2 = −2.',
+   ok:'West — X меншає: 0 − 2 = −2.',hint:v=>v===2?'Ой! West — ліворуч, і X меншає. Потрібен мінус!':'Не зовсім. 2 кроки на West — ліворуч від нуля. Подивіться на числа вгорі!'},
+  {d:'N',n:4,axis:'Z',ans:-4,prompt:'Мандрівник іде 4 кроки на North. Яким стане Z?',answer:'Z = −4. North — Z меншає: 0 − 4 = −4.',
+   ok:'North — Z меншає: 0 − 4 = −4.',hint:v=>v===4?'Ой! North — вгору, а Z угорі меншає. Потрібен мінус!':'Не зовсім. 4 кроки на North — вгору. Подивіться на числа Z ліворуч!'}
+];
+function b3Mount(idx){return function(api){
+  const Q=B3Q[idx],body=api.body;
+  body.innerHTML=`<div class="b3"><div class="gw"></div><div class="b3s">
+    <div class="b3row"><div class="lbl">Відповідь класу:</div><div class="stp"></div><button class="btn next big chk">✔ Перевірити</button></div>
+    <div class="rules hidden">${RULES_HTML}</div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:-5,x1:5,z0:-5,z1:4,cell:40,tex:TEX.snow,labels:true,axis:true});
+  body.querySelector('.gw').appendChild(g.el);
+  [[-4,-4],[4,-4],[-4,3],[4,2],[-2,3],[3,-3]].forEach(([x,z])=>g.add(ent(img('spruce',30,36),'mid'),x,z));
+  let px=0,pz=0;const tr=g.add(ent(travHTML(40),'trav'),0,0),sign=makeSign(g);placeSign(g,sign,0,0);
+  const st=makeStepper(body.querySelector('.stp'),{label:Q.axis,min:-9,max:9,val:0});
+  let busy=false;
+  const check=async()=>{
+    if(busy)return;const v=st.get();body.querySelector('.rules').classList.remove('hidden');
+    if(v!==Q.ans){api.wrong(Q.hint(v));return;}
+    busy=true;px=0;pz=0;g.jump(tr,0,0);placeSign(g,sign,0,0);$$('.foot',g.ents).forEach(f=>f.remove());await sleep(200);
+    for(let i=0;i<Q.n;i++){
+      if(!api.alive())return;
+      g.add(ent('','foot'),px,pz);px+=DV[Q.d][0];pz+=DV[Q.d][1];g.put(tr,px,pz);placeSign(g,sign,px,pz);
+      hl(sign.querySelector(Q.axis==='X'?'.sx':'.sz'));sfx.step();await sleep(500);
+    }
+    api.solve(Q.ok);busy=false;
+  };
+  body.querySelector('.chk').onclick=check;
+  return{reveal(){if(busy)return;st.set(Q.ans);check();}};
+};}
+
+/* =====================================================================
+   БІОМ 4 — Болото: «Загадки компаса»
+   ===================================================================== */
+const MCCOMP=`<svg viewBox="0 0 360 360" width="320" height="320">
+  <polygon shape-rendering="crispEdges" points="110,10 250,10 350,110 350,250 250,350 110,350 10,250 10,110" fill="#6f6f7e" stroke="#1d1b2a" stroke-width="10"/>
+  <polygon shape-rendering="crispEdges" points="118,30 242,30 330,118 330,242 242,330 118,330 30,242 30,118" fill="#9a9aa8"/>
+  <polygon shape-rendering="crispEdges" points="128,50 232,50 310,128 310,232 232,310 128,310 50,232 50,128" fill="#ece8d6" stroke="#5d5d6b" stroke-width="6"/>
+  <rect x="172" y="56" width="16" height="12" fill="#5d5d6b"/><rect x="172" y="292" width="16" height="12" fill="#5d5d6b"/>
+  <rect x="56" y="172" width="12" height="16" fill="#5d5d6b"/><rect x="292" y="172" width="12" height="16" fill="#5d5d6b"/>
+  <g id="ndl">
+    <rect x="172" y="72" width="16" height="22" fill="#ff4a3d"/><rect x="166" y="94" width="28" height="34" fill="#e8322f"/><rect x="160" y="128" width="40" height="34" fill="#c41f1f"/>
+    <rect x="160" y="198" width="40" height="34" fill="#4b4b58"/><rect x="166" y="232" width="28" height="34" fill="#5d5d6b"/><rect x="172" y="266" width="16" height="22" fill="#6f6f7e"/>
+    <rect x="162" y="162" width="36" height="36" fill="#ffd23f" stroke="#1d1b2a" stroke-width="4"/>
+  </g>
+</svg>`;
+function b4Map(){
+  const pi=(h,x,y,w,hh)=>`<image href="${h}" x="${x}" y="${y}" width="${w}" height="${hh}" style="image-rendering:pixelated"/>`;
+  return `<svg class="b4map" viewBox="0 0 620 440" width="620" height="440">
+  <defs><pattern id="swp" width="48" height="48" patternUnits="userSpaceOnUse">${pi(TEX.swamp,0,0,48,48)}</pattern></defs>
+  <rect width="620" height="440" fill="url(#swp)"/>
+  <path d="M20 300h120v20h30v60h-40v30H30v-40H20z" fill="#2f5d73" stroke="#1d3b4a" stroke-width="4"/>
+  <path d="M240 30h100v30h20v40h-60v-20h-60z" fill="#2f5d73" stroke="#1d3b4a" stroke-width="4"/>
+  <rect x="60" y="330" width="14" height="10" fill="#7ccf5a"/><rect x="120" y="360" width="14" height="10" fill="#7ccf5a"/><rect x="290" y="50" width="14" height="10" fill="#7ccf5a"/>
+  <g transform="translate(470,330)">
+    <text class="mlab" x="0" y="-150">Будинок з ліжком</text>
+    <polygon points="-84,-90 0,-136 84,-90" fill="#7a2f2f" stroke="#1d1b2a" stroke-width="4"/>
+    <rect x="-70" y="-90" width="140" height="84" fill="#a0703c" stroke="#1d1b2a" stroke-width="4"/>
+    <rect x="-14" y="-50" width="28" height="44" fill="#5a3815" stroke="#1d1b2a" stroke-width="3"/>
+    <rect x="-56" y="-76" width="28" height="22" fill="#9fd6ff" stroke="#1d1b2a" stroke-width="3"/>
+    <rect x="28" y="-76" width="28" height="22" fill="#9fd6ff" stroke="#1d1b2a" stroke-width="3"/>
+    ${pi(spr('bed'),-36,6,72,42)}
+  </g>
+  <g transform="translate(560,66)">${pi(spr('lode'),-30,-30,60,60)}<text class="mlab" y="56">Магнетит</text></g>
+  <g id="b4star"><circle r="40" fill="rgba(255,210,63,.35)"/>${pi(spr('star'),-30,-30,60,60)}<text class="mlab" y="58">World Spawn</text></g>
+  <g id="b4z" opacity="0"><text class="mlab" x="400" y="320" style="font-size:30px">Z z z</text></g>
+  <g id="b4h" opacity="0"><text class="mlab" x="470" y="428">💗 точка відродження</text></g>
+  <g id="b4fx" opacity="0"><circle cx="560" cy="66" r="46" fill="none" stroke="#5ff0f0" stroke-width="8"/></g>
+  <g id="b4trav">${pi(spr('trav'),-24,-64,48,64)}
+    <g id="b4cmd" opacity="0"><rect x="-120" y="-118" width="240" height="44" fill="#1d1b2a" stroke="#ffd23f" stroke-width="4"/><text class="cmdt" y="-88">/setworldspawn</text></g></g>
+</svg>`;}
+function b4Scene(api,o){
+  const body=api.body;
+  body.innerHTML=`<div class="b4"><div class="b4c"><div class="b4ct">${o.title||'Компас'}</div>${MCCOMP}<div class="b4lab">Стрілка показує на:<br><b class="b4t">…</b></div></div>
+    <div class="b4m">${b4Map()}</div><div class="b4s"><div class="opts"></div><div class="fb"></div></div></div>`;
+  const T={star:{x:110,y:100},lode:{x:560,y:66}};
+  const tp={x:o.trav[0],y:o.trav[1]};
+  const trav=body.querySelector('#b4trav'),star=body.querySelector('#b4star'),ndl=body.querySelector('#ndl'),lab=body.querySelector('.b4t');
+  const place=()=>{trav.setAttribute('transform',`translate(${tp.x.toFixed(1)},${tp.y.toFixed(1)})`);star.setAttribute('transform',`translate(${T.star.x.toFixed(1)},${T.star.y.toFixed(1)})`);};
+  const LABEL={spin:'❓ крутиться…',star:'⭐ World Spawn',lode:'🧲 Магнетит'};
+  let mode=o.mode,ang=0;
+  const desired=()=>{const t=T[mode],dx=t.x-tp.x,dy=t.y-(tp.y-30);return{a:Math.atan2(dx,-dy)*180/Math.PI,d:Math.hypot(dx,dy)};};
+  const setMode=md=>{mode=md;lab.textContent=LABEL[md];};
+  setMode(mode);place();if(mode!=='spin')ang=desired().a;
+  const loop=()=>{
+    if(!api.alive())return;
+    if(mode==='spin')ang+=5;
+    else{const{a,d}=desired();if(d<26)ang+=4;else{const df=((a-ang)%360+540)%360-180;ang+=df*.12;}}
+    ndl.setAttribute('transform',`rotate(${ang.toFixed(2)} 180 180)`);requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  const walkTo=(x,y,ms=1300)=>{const x0=tp.x,y0=tp.y;return tween(ms,e=>{tp.x=x0+(x-x0)*e;tp.y=y0+(y-y0)*e;place();});};
+  const moveStar=(x,y,ms=1600)=>{const x0=T.star.x,y0=T.star.y;return tween(ms,e=>{T.star.x=x0+(x-x0)*e;T.star.y=y0+(y-y0)*e;place();});};
+  const show=(id,on=1)=>body.querySelector(id).setAttribute('opacity',on);
+  return{setMode,walkTo,moveStar,show,opts:body.querySelector('.b4s .opts')};
+}
+const B4Q=[
+ {prompt:'На що вказує червона стрілка компаса в Minecraft?',options:['А) На North','Б) На World Spawn','В) На гравця'],answer:'Б) На World Spawn — точку появи світу.',
+  mount(api){
+    const sc=b4Scene(api,{mode:api.solved?'star':'spin',trav:[310,260]});
+    const m=mcOptions(api,sc.opts,['На North','На World Spawn','На гравця'],1,()=>{sc.setMode('star');api.solve('Так! Компас у Minecraft вказує на World Spawn — точку появи світу. А справжній компас — на North.');},
+      ['Справжній компас вказує на North. А в Minecraft — інакше! Подивіться на карту.',null,'Ні, на самого гравця компас не вказує.']);
+    return{reveal:m.correct};
+  }},
+ {prompt:'Мандрівник поспав у ліжку. Куди тепер вказує компас?',options:['А) На ліжко','Б) Як і раніше — на World Spawn'],answer:'Б) Як і раніше — на World Spawn.',
+  mount(api){
+    const sc=b4Scene(api,{mode:'star',trav:[310,260]});
+    const m=mcOptions(api,sc.opts,['На ліжко','Як і раніше — на World Spawn'],1,async()=>{
+      await sc.walkTo(400,388,1300);if(!api.alive())return;sc.show('#b4z');await sleep(1200);if(!api.alive())return;
+      sc.show('#b4z',0);sc.show('#b4h');await sc.walkTo(300,250,1400);if(!api.alive())return;
+      api.solve('Так! Ліжко змінює точку відродження, а компас усе одно показує на World Spawn.');
+    },['Ні! Ліжко змінює лише точку відродження. А на що вказує компас у Minecraft?',null]);
+    return{reveal:m.correct};
+  }},
+ {prompt:'Мандрівник натиснув ПКМ компасом по магнетиту. Куди тепер вказує компас?',options:['А) На World Spawn','Б) На магнетит'],answer:'Б) На магнетит.',
+  mount(api){
+    const sc=b4Scene(api,{mode:'star',trav:[310,260]});
+    const m=mcOptions(api,sc.opts,['На World Spawn','На магнетит'],1,async()=>{
+      await sc.walkTo(560,160,1300);if(!api.alive())return;sc.show('#b4fx');sfx.tp();sc.setMode('lode');await sleep(700);if(!api.alive())return;
+      sc.show('#b4fx',0);await sc.walkTo(260,280,1500);if(!api.alive())return;
+      api.solve('Так! Компас, яким натиснули по магнетиту, тепер вказує на магнетит.');
+    },['Ні! Магнетит — особливий блок: він змінює напрямок компаса. Спробуйте ще!',null]);
+    return{reveal:m.correct};
+  }},
+ {prompt:'Яка команда переносить World Spawn у нове місце?',options:['А) /spawnpoint','Б) /setworldspawn','В) /teleport'],answer:'Б) /setworldspawn',
+  mount(api){
+    const sc=b4Scene(api,{mode:'star',trav:[300,330],title:'Звичайний компас'});
+    const m=mcOptions(api,sc.opts,['/spawnpoint','/setworldspawn','/teleport'],1,async()=>{
+      sc.show('#b4cmd');sfx.tp();await sleep(700);if(!api.alive())return;
+      await sc.moveStar(300,300,1700);if(!api.alive())return;sc.show('#b4cmd',0);
+      await sc.walkTo(200,200,1300);if(!api.alive())return;
+      api.solve('Так! /setworldspawn переносить World Spawn. Тепер компас вказує на нове місце.');
+    },['/spawnpoint змінює точку відродження гравця, а не World Spawn.',null,'/teleport переносить гравця, а не World Spawn.']);
+    return{reveal:m.correct};
+  }}
+];
+
+/* =====================================================================
+   БІОМ 5 — Савана: «Стіл картографа»
+   ===================================================================== */
+function hsh(a,b){let n=(Math.imul(a,374761393)+Math.imul(b,668265263))|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296;}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,s=t=>t*t*(3-2*t),u=s(xf),v=s(yf);
+  const a=hsh(xi,yi),b=hsh(xi+1,yi),c=hsh(xi,yi+1),d=hsh(xi+1,yi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+const fbm=(x,y)=>vnoise(x,y)*.55+vnoise(x*2.1+7,y*2.1+3)*.3+vnoise(x*4.3+1,y*4.3+9)*.15;
+function drawMap(cv,scale,loc){
+  const x=cv.getContext('2d'),W=cv.width,im=x.createImageData(W,W),d=im.data;
+  for(let j=0;j<W;j++)for(let i=0;i<W;i++){
+    const wx=(i-W/2)*scale,wz=(j-W/2)*scale,e=fbm(wx/80+50,wz/80+50);
+    let c;if(e<.36)c=[52,98,196];else if(e<.41)c=[78,128,226];else if(e<.44)c=[226,210,150];else if(e<.6)c=[127,178,56];else if(e<.7)c=[78,122,40];else if(e<.78)c=[140,140,148];else c=[245,245,250];
+    const k=(j*W+i)*4;d[k]=c[0];d[k+1]=c[1];d[k+2]=c[2];d[k+3]=255;
+  }
+  x.putImageData(im,0,0);
+  x.fillStyle='#c7b37a';x.fillRect(0,0,W,3);x.fillRect(0,W-3,W,3);x.fillRect(0,0,3,W);x.fillRect(W-3,0,3,W);
+  if(loc){const c=W/2;x.fillStyle='#1d1b2a';x.beginPath();x.moveTo(c,c-14);x.lineTo(c+10,c+11);x.lineTo(c,c+5);x.lineTo(c-10,c+11);x.closePath();x.fill();
+    x.fillStyle='#29e04a';x.beginPath();x.moveTo(c,c-10);x.lineTo(c+7,c+8);x.lineTo(c,c+3);x.lineTo(c-7,c+8);x.closePath();x.fill();}
+}
+const ITEMS={compass:{spr:'compass',ua:'Компас',en:'Compass'},paper:{spr:'paper',ua:'Папір',en:'Paper'},lode:{spr:'lode',ua:'Магнетит',en:'Lodestone'}};
+function b5Scene(api,cfg){
+  const body=api.body;
+  body.innerHTML=`<div class="b5"><div class="ctable"><div class="cthead">🗺️ Стіл картографа</div>
+    <div class="ctrow"><div class="cslot s1"><canvas width="128" height="128" class="pix"></canvas><span class="sl">Карта</span></div><div class="sym">+</div>
+      <div class="cslot s2"><div class="si"></div><span class="sl">Предмет</span></div><div class="sym">➜</div>
+      <div class="cslot big res empty"><canvas width="128" height="128" class="pix"></canvas><span class="sl">Результат</span></div></div>
+    <div class="items">${cfg.items.map(it=>`<button class="item" data-it="${it}">${img(ITEMS[it].spr,72)}<span><b>${ITEMS[it].ua}</b><i>${ITEMS[it].en}</i></span></button>`).join('')}</div></div>
+    <div class="b5s"><div class="scalebox"><div class="sbt">Шкала масштабу карти</div><div class="scales">${[1,2,4,8,16].map(v=>`<span data-v="${v}">${v}</span>`).join('<em>→</em>')}</div><div class="pcount"></div></div>
+    <div class="opts"></div><div class="fb"></div></div></div>`;
+  const s1=body.querySelector('.s1 canvas'),res=body.querySelector('.res canvas'),resSlot=body.querySelector('.res'),si=body.querySelector('.si');
+  drawMap(s1,cfg.scale,cfg.loc);
+  const setScale=v=>$$('.scales span',body).forEach(s=>{s.classList.toggle('on',+s.dataset.v===v);s.classList.toggle('past',+s.dataset.v<v);});
+  setScale(cfg.scale);
+  return{body,s1,setScale,
+    putItem:it=>{si.innerHTML=it?img(ITEMS[it].spr,96):'';},
+    showRes:async(scale,loc,from)=>{resSlot.classList.remove('empty');if(from&&from!==scale)await tween(900,e=>drawMap(res,from*Math.pow(scale/from,e),loc));drawMap(res,scale,loc);},
+    items:body.querySelector('.items'),opts:body.querySelector('.b5s .opts'),pc:body.querySelector('.pcount'),slot2:body.querySelector('.s2')};
+}
+const B5Q=[
+ {prompt:'Що додати до карти, щоб на ній було видно гравця (зелену стрілку)?',answer:'Компас! Карта + компас = карта з локатором.',
+  mount(api){
+    const sc=b5Scene(api,{scale:1,loc:false,items:['compass','paper','lode']});let done=false,tmo=0;
+    const pick=it=>{if(done)return;sc.putItem(it);sfx.click();
+      if(it==='compass'){done=true;sc.showRes(1,true);api.solve('Так! Карта + компас = карта з локатором. Зелена стрілка — це мандрівник!');}
+      else{api.wrong(it==='paper'?'Папір збільшує масштаб, але мандрівника на карті не покаже.':'Магнетит тут не допоможе — він для компаса, а не для карти.');
+        clearTimeout(tmo);tmo=setTimeout(()=>{if(api.alive()&&!done)sc.putItem(null);},1300);}};
+    sc.items.onclick=e=>{const b=e.target.closest('.item');if(b)pick(b.dataset.it);};
+    return{reveal:()=>pick('compass')};
+  }},
+ {prompt:'Що додати, щоб карта показувала більшу територію?',answer:'Папір! Карта + папір = більший масштаб.',
+  mount(api){
+    const sc=b5Scene(api,{scale:1,loc:true,items:['compass','paper','lode']});let done=false,tmo=0;
+    const pick=it=>{if(done)return;sc.putItem(it);sfx.click();
+      if(it==='paper'){done=true;sc.setScale(2);sc.showRes(2,true,1).then(()=>{if(api.alive())api.solve('Так! Карта + папір = більша територія. Масштаб 1 → 2: карта «віддалилась».');});}
+      else{api.wrong(it==='compass'?'Компас додає зелену стрілку-локатор. А територію не збільшує.':'Магнетит тут не допоможе — він для компаса, а не для карти.');
+        clearTimeout(tmo);tmo=setTimeout(()=>{if(api.alive()&&!done)sc.putItem(null);},1300);}};
+    sc.items.onclick=e=>{const b=e.target.closest('.item');if(b)pick(b.dataset.it);};
+    return{reveal:()=>pick('paper')};
+  }},
+ {prompt:'Скільки разів можна додати папір?',options:['А) 2 рази','Б) 4 рази','В) 8 разів','Г) Скільки завгодно'],answer:'4 рази: масштаб 1 → 2 → 4 → 8 → 16.',
+  mount(api){
+    const sc=b5Scene(api,{scale:1,loc:true,items:['paper']});let n=0,scale=1,busy=false,cur=Promise.resolve();
+    const pbtn=sc.items.querySelector('.item');
+    const upd=()=>{sc.pc.innerHTML=`📄 Додано паперу: <b style="color:var(--gold)">${n}</b>${n>=4?' — більше не можна!':''}`;};
+    upd();
+    const addPaper=()=>{
+      if(busy)return cur;if(n>=4){api.info('Стоп! Більше папір не додається. Масштаб 16 — найбільший.');return Promise.resolve();}
+      busy=true;cur=(async()=>{
+        sc.putItem('paper');sfx.click();n++;const from=scale;scale*=2;sc.setScale(scale);upd();
+        await sc.showRes(scale,true,from);if(!api.alive())return;drawMap(sc.s1,scale,true);sc.putItem(null);
+        if(n>=4){pbtn.disabled=true;sc.slot2.classList.add('locked');api.info('Стоп! Слот більше не приймає папір. Масштаб 16 — найбільший.');}
+        busy=false;
+      })();return cur;
+    };
+    pbtn.onclick=()=>addPaper();
+    const m=mcOptions(api,sc.opts,['2 рази','4 рази','8 разів','Скільки завгодно'],1,async()=>{
+      while(n<4&&api.alive())await addPaper();
+      if(api.alive())api.solve('Так! Папір можна додати 4 рази: 1 → 2 → 4 → 8 → 16.');
+    },['Перевірмо! Додавайте папір по одному і рахуйте.',null,'Перевірмо! Додавайте папір по одному і рахуйте.','Ні, є межа! Додавайте папір по одному — і побачите.']);
+    return{reveal:m.correct};
+  }}
+];
+
+/* =====================================================================
+   БІОМ 6 — Гори: «Телепорт до Вежі»
+   ===================================================================== */
+const B6POS=[[-2,1],[0,-2],[-4,0],[1,2],[-3,-1],[2,0],[-1,-3]];
+const blockHTML=k=>k==='rel'
+  ?`<div class="mblock" data-b="rel"><span>телепортуватися до</span><span class="v t">~3</span><span class="v t">~0</span><span class="v t">~0</span></div>`
+  :`<div class="mblock" data-b="abs"><span>телепортуватися до</span><span class="v">2</span><span class="v">64</span><span class="v">-3</span></div>`;
+function b6A(which){return function(api){
+  const body=api.body,bs=api.bs,quiz=which==='quiz';
+  if(!bs.pos){bs.pos=[...B6POS[0]];bs.pi=0;}
+  body.innerHTML=`<div class="b6"><div class="gw"></div>
+    <div class="b6mid"><div class="mtitle">${quiz?'👆 Клацніть блок-відповідь:':'Блоки коду (клацніть, щоб обрати):'}</div><div class="mbs">${blockHTML('rel')}${blockHTML('abs')}</div>
+      <div class="where">Мандрівник зараз: <b class="wxz"></b></div>
+      ${quiz?'':'<div class="b6btns"><button class="btn mv">🔀 Перемістити мандрівника</button><button class="btn next big run">▶ Запустити</button></div>'}</div>
+    <div class="b6s"><div class="hint6">${quiz?'🤔 Згадайте: куди телепортувався мандрівник з кожним блоком?':'👆 Клацніть клітинку на карті: куди потрапить мандрівник?'}</div>
+      <div class="rules6${bs.ran&&!quiz?'':' hidden'}"><b>~</b> З тильдою — рахуємо від того місця, де стоїш.<br>Без тильди — це завжди одне й те саме місце у світі.<br><small>Числа: X, Y, Z. Y — це висота, на карті зверху її не видно.</small></div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:-4,x1:6,z0:-4,z1:3,cell:50,tex:TEX.mount,labels:true,axis:true});
+  body.querySelector('.gw').appendChild(g.el);
+  [[-4,-4],[5,2],[6,-4],[-4,3]].forEach(([x,z])=>g.add(ent(img('rock',36,27),'mid'),x,z));
+  const tr=g.add(ent(travHTML(50),'trav'),...bs.pos);
+  const upd=()=>{body.querySelector('.wxz').textContent=`X = ${fmt(bs.pos[0])}, Z = ${fmt(bs.pos[1])}`;};upd();
+  const blocks=$$('.mblock',body);let sel=which==='abs'?'abs':'rel';
+  const showSel=()=>blocks.forEach(b=>b.classList.toggle('sel',!quiz&&b.dataset.b===sel));showSel();
+  let pred=null,predEl=null,running=false;
+  if(quiz){
+    const pick=k=>{
+      const b=body.querySelector(`.mblock[data-b="${k}"]`);
+      if(k==='abs'){b.classList.add('right');body.querySelector('.rules6').classList.remove('hidden');if(!body.querySelector('.always'))g.add(ent('<span>⭐</span>','always'),2,-3);
+        api.solve('Так! Блок без тильди завжди веде в одне місце: X = 2, Z = −3. А з тильдою ~ — рахуємо від того місця, де стоїш.');}
+      else{b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');api.wrong('Ні! З тильдою ~ місце залежить від того, де стоїть мандрівник. Згадайте, що було!');}
+    };
+    blocks.forEach(b=>b.onclick=()=>pick(b.dataset.b));
+    return{reveal:()=>pick('abs')};
+  }
+  g.cells.classList.add('click');
+  const setPred=(x,z)=>{pred=[x,z];if(!predEl)predEl=g.add(ent('<span>?</span>','pred'),x,z);else g.put(predEl,x,z);};
+  g.cells.addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c||running)return;setPred(+c.dataset.x,+c.dataset.z);sfx.click();});
+  blocks.forEach(b=>b.onclick=()=>{if(running)return;sel=b.dataset.b;showSel();sfx.click();});
+  const move=()=>{if(running)return;let np;do{bs.pi=(bs.pi+1)%B6POS.length;np=B6POS[bs.pi];}while(np[0]===bs.pos[0]&&np[1]===bs.pos[1]);bs.pos=[...np];g.put(tr,...bs.pos);upd();sfx.step();};
+  body.querySelector('.mv').onclick=move;
+  const run=async()=>{
+    if(running)return;
+    if(!pred){api.info('👆 Спершу клацніть клітинку: куди, на думку класу, потрапить мандрівник?');return;}
+    const[x,z]=bs.pos,dest=sel==='rel'?[x+3,z]:[2,-3];
+    if(!g.inside(...dest)){api.info('Ой! Звідси ~3 виведе за край карти. Натисніть «🔀 Перемістити мандрівника».');return;}
+    running=true;const bl=body.querySelector(`.mblock[data-b="${sel}"]`);bl.classList.remove('running');void bl.offsetWidth;bl.classList.add('running');
+    sfx.tp();await tpAnim(g,tr,[x,z],dest);if(!api.alive())return;
+    bs.pos=dest;bs.ran=(bs.ran||0)+1;upd();body.querySelector('.rules6').classList.remove('hidden');
+    const ok=pred[0]===dest[0]&&pred[1]===dest[1];if(predEl){predEl.remove();predEl=null;}pred=null;
+    const msg=sel==='rel'?`З тильдою ~ рахуємо від мандрівника: X = ${fmt(x)} + 3 = ${fmt(x+3)}, Z не змінюється.`:'Без тильди — завжди одне місце: X = 2, Z = −3.';
+    if(ok){if(sel===which)api.solve('Так! '+msg);else api.info('✅ Правильно! '+msg);}
+    else api.wrong(`Мандрівник тут! ${msg} Перемістіть мандрівника і спробуйте ще!`);
+    running=false;
+  };
+  body.querySelector('.run').onclick=run;
+  return{reveal(){
+    if(running)return;sel=which;showSel();
+    if(which==='rel'&&bs.pos[0]+3>6)move();
+    const d=which==='rel'?[bs.pos[0]+3,bs.pos[1]]:[2,-3];setPred(...d);setTimeout(()=>{if(api.alive())run();},500);
+  }};
+};}
+function b6B(step){return function(api){
+  const body=api.body;
+  body.innerHTML=`<div class="b6b"><div class="note"><div class="nt">📜 Секретна записка</div>
+    <p>«Від <b>World Spawn</b> (X = 0, Z = 0) іди на <b>East</b> 200 блоків, потім на <b>North</b> 150 блоків. Там стоїть Вежа!»</p>
+    <div class="scaleTag">1 клітинка = 50 блоків</div></div>
+    <div class="gw"></div><div class="b6bs"><div class="ctrl"></div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:-1,x1:5,z0:-4,z1:1,cell:66,tex:TEX.grass,labels:true,lw:66,fx:v=>v*50,fz:v=>v*50,axis:true});
+  body.querySelector('.gw').appendChild(g.el);
+  g.add(ent(img('star',44),'starE'),0,0);
+  const tower=g.add(ent(`<img class="pix" src="${towerBig()}" style="width:46px;height:80px">`,'towerE'+(step<2?' veil':'')),4,-3);
+  const start=step===1?[4,0]:[0,0];let[px,pz]=start;
+  if(step===1)for(let i=0;i<4;i++)g.add(ent('','foot'),i,0);
+  const tr=g.add(ent(travHTML(66),'trav'),px,pz),sign=makeSign(g);placeSign(g,sign,px,pz,50);
+  const ctrl=body.querySelector('.ctrl');let busy=false;
+  const walk=async(d,n,axis)=>{for(let i=0;i<n;i++){if(!api.alive())return false;g.add(ent('','foot'),px,pz);px+=DV[d][0];pz+=DV[d][1];g.put(tr,px,pz);placeSign(g,sign,px,pz,50);hl(sign.querySelector(axis==='X'?'.sx':'.sz'));sfx.step();await sleep(550);}return true;};
+  const reveal=()=>{tower.classList.remove('veil');tower.classList.add('show');};
+  if(step<2){
+    const axis=step===0?'X':'Z',ans=step===0?200:-150;
+    ctrl.innerHTML=`<div class="lbl">Відповідь класу:</div><div class="stp"></div><button class="btn next big chk">✔ Перевірити</button>`;
+    ctrl.style.cssText='display:flex;flex-direction:column;gap:16px;align-items:flex-start';
+    const st=makeStepper(ctrl.querySelector('.stp'),{label:axis,min:-300,max:300,step:50,val:0});
+    const check=async()=>{
+      if(busy)return;const v=st.get();
+      if(v!==ans){
+        if(step===0)api.wrong(v===-200?'Ой! East — це праворуч, X більшає, а не меншає.':'Не зовсім. Мандрівник іде 200 блоків на East. Яким стане X? (1 клітинка = 50 блоків)');
+        else api.wrong(v===150?'Ой! North — це вгору, а Z угорі МЕНШАЄ. Потрібен мінус!':'Не зовсім. Мандрівник іде 150 блоків на North. Яким стане Z?');
+        return;}
+      busy=true;
+      const okw=step===0?await walk('E',4,'X'):await walk('N',3,'Z');if(!okw||!api.alive())return;
+      if(step===0)api.solve('Так! East — X більшає: 0 + 200 = 200. Це 4 клітинки.');
+      else{reveal();sfx.coin();api.solve('Так! North — це мінус Z: Z = −150. Вежа тут! 🏰');}
+      busy=false;
+    };
+    ctrl.querySelector('.chk').onclick=check;
+    return{reveal(){if(busy)return;st.set(ans);check();}};
+  }
+  ctrl.innerHTML=`<div class="cmd">/teleport <span class="cv cvx">0</span> 64 <span class="cv cvz">0</span></div><div class="twoSteps"></div><button class="btn next big chk" style="align-self:flex-start">✨ Телепорт!</button>`;
+  ctrl.style.cssText='display:flex;flex-direction:column;gap:16px';
+  const ts=ctrl.querySelector('.twoSteps');
+  const sx=makeStepper(ts,{label:'X',min:-300,max:300,step:50,val:0,onChange:v=>{ctrl.querySelector('.cvx').textContent=v<0?'-'+Math.abs(v):v;}});
+  const sz=makeStepper(ts,{label:'Z',min:-300,max:300,step:50,val:0,onChange:v=>{ctrl.querySelector('.cvz').textContent=v<0?'-'+Math.abs(v):v;}});
+  const check=async()=>{
+    if(busy)return;const X=sx.get(),Z=sz.get();
+    if(X!==200||Z!==-150){
+      if(X!==200&&Z!==-150)api.wrong('Перевірте обидва числа! Спершу X (East / West), потім Z (North / South).');
+      else if(X!==200)api.wrong(X===-200?'X: East — це плюс! Потрібно 200.':'Перевірте X: Вежа на 200 блоків на East.');
+      else api.wrong(Z===150?'Z: North — це мінус Z! Потрібно −150.':'Перевірте Z: Вежа на 150 блоків на North.');
+      return;}
+    busy=true;sfx.tp();await tpAnim(g,tr,[px,pz],[4,-3]);if(!api.alive())return;
+    px=4;pz=-3;placeSign(g,sign,px,pz,50);hl(sign.querySelector('.sx'));hl(sign.querySelector('.sz'));
+    api.solve('Телепорт! ✨ /teleport 200 64 -150 — і ми біля Вежі!');
+    setTimeout(()=>{if(api.alive())completeBiome();},1900);
+  };
+  ctrl.querySelector('.chk').onclick=check;
+  return{reveal(){if(busy)return;sx.set(200);sz.set(-150);check();}};
+};}
+
+/* =====================================================================
+   БІОМИ
+   ===================================================================== */
+const BIOMES=[
+ {key:'forest',name:'Ліс Академії',icon:'🌲',title:'Компас мандрівника',reward:{en:'NORTH',ua:'Північ',spr:'arrowN',say:'North'},
+  bonus:{q:'Мандрівник повернувся обличчям на East. Що тепер за спиною?',a:'<b>West</b> — Захід! За спиною завжди протилежна сторона: East ↔ West.'},
+  questions:B1Q},
+ {key:'desert',name:'Пустеля',icon:'🌵',title:'Маршрут без карти',reward:{en:'COMPASS',ua:'Компас',spr:'compass',say:'Compass'},
+  bonus:{q:'Який найкоротший маршрут? Скільки кроків?',a:()=>{const mi=Math.min(S.q,1),p=bfs(MAZES[mi]),rec=S.bs.rec&&S.bs.rec[mi];
+    return `Найкоротший — <b>${kroky(p.length)}</b>: ${p.join(' ')}<br>(${pathSummary(p)}${MAZES[mi].cacti.length?', в обхід кактусів':''}).${rec?`<br>🏆 Рекорд класу: ${kroky(rec)}${rec===p.length?' — це найкоротший!':''}`:''}`;}},
+  questions:[
+   {prompt:'Доведіть мандрівника до скрині! Кажіть лише: North, South, West, East.',answer:()=>{const p=bfs(MAZES[0]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(0)},
+   {prompt:'Обережно, кактуси! 🌵 Доведіть мандрівника до скрині.',answer:()=>{const p=bfs(MAZES[1]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(1)}
+  ]},
+ {key:'taiga',name:'Сніжна тайга',icon:'❄️',title:'Координати сторін світу',reward:{en:'COORDINATES',ua:'Координати',spr:'coords',say:'Coordinates'},
+  bonus:{q:'Мандрівник пройшов 2 кроки East і 3 кроки South. Які координати?',a:'<b>X = 2, Z = 3.</b><br>East — X більшає на 2. South — Z більшає на 3.'},
+  questions:B3Q.map((q,i)=>({prompt:q.prompt,answer:q.answer,mount:b3Mount(i)}))},
+ {key:'swamp',name:'Болото',icon:'🐸',title:'Загадки компаса',reward:{en:'SPAWN',ua:'Точка появи',spr:'star',say:'Spawn'},
+  bonus:{q:'Мандрівник поспав у ліжку, потім зламав його і поставив на те саме місце. Де він відродиться?',a:'На <b>World Spawn</b>! Зламане ліжко скидає точку відродження. Щоб знову відроджуватися біля ліжка — треба ще раз у ньому поспати.'},
+  questions:B4Q},
+ {key:'savanna',name:'Савана',icon:'🦒',title:'Стіл картографа',reward:{en:'MAP',ua:'Карта',spr:'map',say:'Map'},
+  bonus:{q:'Яка карта краща для далекої подорожі: з масштабом 1 чи 8? Чому?',a:'Масштаб <b>8</b>! Вона показує більшу територію — видно далекі місця.'},
+  questions:B5Q},
+ {key:'mount',name:'Гори',icon:'⛰️',title:'Телепорт до Вежі',reward:{en:'TELEPORT',ua:'Телепорт',spr:'portal',say:'Teleport'},
+  bonus:{q:'Мандрівник на X = 1, Z = 2. Блок [телепортуватися до ~0 ~0 ~−2]. Куди він потрапить?',a:'<b>X = 1, Z = 0.</b><br>~0 — X не змінюється. ~−2 — Z меншає на 2: 2 − 2 = 0.'},
+  questions:[
+   {prompt:'Куди потрапить мандрівник після блоку [~3 ~0 ~0]?',answer:'На 3 клітинки на East від того місця, де він стоїть: X + 3, Z той самий.',mount:b6A('rel')},
+   {prompt:'А після блоку [2 64 -3]? Куди потрапить мандрівник?',answer:'Завжди в одне місце: X = 2, Z = −3.',mount:b6A('abs')},
+   {prompt:'Який блок завжди веде в одне й те саме місце?',options:['[телепортуватися до ~3 ~0 ~0]','[телепортуватися до 2 64 -3]'],answer:'Блок без тильди: [телепортуватися до 2 64 -3].',mount:b6A('quiz')},
+   {prompt:'Секретний маршрут! Яким буде X Вежі?',answer:'X = 200 (East — X більшає: 0 + 200).',mount:b6B(0)},
+   {prompt:'Яким буде Z Вежі?',answer:'Z = −150 (North — це мінус Z).',mount:b6B(1),
+    bonus:{q:'Мандрівник на X = 200, Z = 0. Яку команду з тильдою написати, щоб потрапити до Вежі?',a:'<b>/teleport ~0 ~0 ~-150</b><br>X не міняється, висота та сама, Z меншає на 150 (на North).'}},
+   {prompt:'Допишіть команду телепорту: /teleport ___ 64 ___',answer:'/teleport 200 64 -150',mount:b6B(2),
+    bonus:{q:'Мандрівник на X = 200, Z = 0. Яку команду з тильдою написати, щоб потрапити до Вежі?',a:'<b>/teleport ~0 ~0 ~-150</b><br>X не міняється, висота та сама, Z меншає на 150 (на North).'}}
+  ]}
+];
+BIOMES[5].questions[3].bonus=BIOMES[5].questions[4].bonus;
+const SKILLS=[
+ 'Називаємо сторони горизонту: <b>North, South, West, East</b> — і показуємо їх на компасі.',
+ 'Прокладаємо маршрут лише напрямками <b>N / S / W / E</b>.',
+ 'Знаємо, як зміниться координата: <b>East +X, West −X, South +Z, North −Z</b>.',
+ 'Компас у Minecraft вказує на <b>World Spawn</b>; магнетит змінює його напрямок.',
+ 'Карта + <b>компас</b> = локатор; карта + <b>папір</b> = більший масштаб (до 4 разів).',
+ '<b>~</b> — відносні координати (від того, де стоїш); без ~ — абсолютні (завжди одне місце).'
+];
+
+/* =====================================================================
+   СТАН І ПОТІК ГРИ
+   ===================================================================== */
+const S={screen:'start',b:0,q:0,solved:BIOMES.map(b=>b.questions.map(()=>false)),bs:{},busy:false};
+let token=0,cur={},curPrompt='';
+const curQ=()=>BIOMES[S.b].questions[S.q];
+function setPrompt(t){curPrompt=t;$('#qtext').textContent=t;}
+function render(){
+  token++;const t=token,B=BIOMES[S.b],Q=curQ();
+  $('#btitle').innerHTML=`${B.icon} Біом ${S.b+1}: ${B.name} — <span class="ch">«${B.title}»</span>`;
+  $('#bbar').innerHTML=B.questions.map((q,i)=>`<i class="${S.solved[S.b][i]?'on':''}${i===S.q?' cur':''}"></i>`).join('');
+  $('#qcount').textContent=`Завдання ${S.q+1} з ${B.questions.length}`;
+  setPrompt(Q.prompt);
+  const body=$('#qbody');body.innerHTML='';
+  const fb=(cls,msg)=>{if(t!==token)return;const el=body.querySelector('.fb');if(!el)return;el.className='fb '+cls;el.innerHTML=msg;};
+  const api={body,bs:S.bs,solved:S.solved[S.b][S.q],alive:()=>t===token,fb,
+    setPrompt:p=>{if(t===token)setPrompt(p);},
+    solve:msg=>{if(t!==token)return;S.solved[S.b][S.q]=true;const bar=$$('#bbar i')[S.q];if(bar)bar.classList.add('on');
+      const all=S.solved[S.b].every(Boolean);
+      fb('ok','✅ '+msg+(all&&S.b<5?'<br>🎉 Біом пройдено! Тисніть «В дорогу!»':''));sfx.ok();updateNav();},
+    wrong:msg=>{fb('no','🤔 '+msg);sfx.no();},
+    info:msg=>fb('info',msg)};
+  cur=Q.mount(api)||{};
+  if(api.solved&&!body.querySelector('.fb.ok'))fb('ok','✅ Це завдання вже пройдено! Можна спробувати ще раз.');
+  updateNav();updateMap();
+}
+function updateNav(){
+  if(S.screen!=='play')return;
+  $('#bBack').disabled=S.q===0;
+  const all=S.solved[S.b].every(Boolean),n=$('#bNext');
+  n.classList.toggle('ready',all);n.textContent=all?(S.b===5?'🏰 До Вежі! →':'🚶 В дорогу! →'):'Далі →';
+}
+function next(){
+  if(S.busy)return;
+  if(S.screen==='start'){startGame();return;}
+  if(S.screen!=='play')return;
+  const B=BIOMES[S.b];
+  if(S.solved[S.b].every(Boolean)){completeBiome();return;}
+  if(S.q<B.questions.length-1){S.q++;sfx.click();render();}
+  else{const k=S.solved[S.b].findIndex(v=>!v);S.q=k;render();toast(`Ще не все пройдено: завдання ${k+1}`);}
+}
+function back(){if(S.busy||S.screen!=='play'||S.q===0)return;S.q--;sfx.click();render();}
+function resetBiome(){if(S.busy||S.screen!=='play')return;S.solved[S.b]=S.solved[S.b].map(()=>false);S.bs={};S.q=0;render();toast('↺ Біом скинуто. Пробуємо ще раз!');}
+function revealAnswer(){
+  if(S.busy||S.screen!=='play')return;const Q=curQ();const a=typeof Q.answer==='function'?Q.answer():Q.answer;
+  const el=$('#qbody .fb');if(el){el.className='fb ans';el.innerHTML='👀 Відповідь: '+a;}
+  sfx.click();if(cur.reveal)cur.reveal();
+}
+function showThink(){
+  if(S.busy||S.screen!=='play')return;const Q=curQ();
+  openOv(`<div class="ovh">🤔 Як думаєте?</div><div class="ovq">${curPrompt}</div>${Q.options?`<div class="ovopts">${Q.options.map(o=>`<div>${o}</div>`).join('')}</div>`:''}<div class="ovhint">Подумайте і скажіть відповідь голосом! 🙋</div><button class="btn ovx">Закрити ✕</button>`);
+  sfx.click();
+}
+function showFast(){
+  if(S.busy||S.screen!=='play')return;const Q=curQ(),bn=Q.bonus||BIOMES[S.b].bonus,a=typeof bn.a==='function'?bn.a():bn.a;
+  openOv(`<div class="ovh fast">⚡ Для швидких</div><div class="ovq" style="font-size:52px">${bn.q}</div><div class="ova hidden">${a}</div><div class="ovbtns"><button class="btn reveal big ovshow">👀 Показати відповідь</button><button class="btn big ovx">Закрити ✕</button></div>`);
+  $('.ovshow',OVC).onclick=()=>{$('.ova',OVC).classList.remove('hidden');$('.ovshow',OVC).classList.add('hidden');sfx.ok();};
+  sfx.click();
+}
+$('#bNext').onclick=next;$('#bBack').onclick=back;$('#bReset').onclick=resetBiome;
+$('#bReveal').onclick=revealAnswer;$('#bThink').onclick=showThink;$('#bFast').onclick=showFast;
+
+/* overlay */
+const OV=$('#ov'),OVC=$('#ovCard');let ovPrimary=null,ovClosable=true;
+function openOv(html,{cls='',primary=null,closable=true}={}){OVC.className='card '+cls;OVC.innerHTML=html;OV.classList.remove('hidden');ovPrimary=primary;ovClosable=closable;const x=$('.ovx',OVC);if(x)x.onclick=closeOv;}
+function closeOv(){OV.classList.add('hidden');OVC.innerHTML='';ovPrimary=null;}
+OV.addEventListener('click',e=>{if(e.target===OV&&ovClosable)closeOv();});
+let toastT=0;
+function toast(m){const t=$('#toast');t.innerHTML=m;t.classList.remove('hidden','show');void t.offsetWidth;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.add('hidden'),2600);}
+
+addEventListener('keydown',e=>{
+  if(!OV.classList.contains('hidden')){
+    if(e.key==='Escape'&&ovClosable)closeOv();
+    else if((e.key==='ArrowRight'||e.key==='Enter')&&ovPrimary){e.preventDefault();ovPrimary();}
+    else if(e.key==='ArrowRight'&&ovClosable){e.preventDefault();closeOv();}
+    return;
+  }
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==='ArrowRight'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();back();}
+  else if(e.code==='KeyR'){resetBiome();}
+  else if(e.key==='Enter'&&S.screen==='start'){e.preventDefault();startGame();}
+});
+
+/* ---------------- карта подорожі ---------------- */
+const TW=164,TH=152,TRAV_OFF=(TW-48)/2;let tileX=()=>0;
+function buildMap(){
+  const tr=$('#track'),W=tr.clientWidth||1398,gap=(W-7*TW)/6;tileX=i=>Math.round(i*(TW+gap));
+  const kinds=['forest','desert','taiga','swamp','savanna','mount','tower'],names=[...BIOMES.map(b=>b.name),'Вежа Чарівника'];
+  let svg='';for(let i=0;i<6;i++){const x1=tileX(i)+TW-4,x2=tileX(i+1)+4,y=6+TH-34,len=x2-x1;
+    svg+=`<line class="pbase" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line class="plit" id="pl${i}" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" data-len="${len}" style="stroke-dasharray:${len};stroke-dashoffset:${len}"/>`;}
+  $('#paths').innerHTML=svg;
+  kinds.forEach((k,i)=>{const t=document.createElement('div');t.className='tile'+(k==='tower'?' tower':'');t.style.left=tileX(i)+'px';
+    t.innerHTML=`<img class="pix scene" src="${scene(k)}" alt=""><div class="tlabel">${names[i]}</div>${k==='tower'?'<div class="fog"><span>?</span></div>':''}`;tr.appendChild(t);});
+  const m=document.createElement('div');m.id='mtrav';m.innerHTML=`<img class="pix" src="${spr('trav')}" alt="">`;tr.appendChild(m);
+}
+function updateMap(){
+  const c=S.screen==='final'?6:S.b;
+  $$('#track .tile').forEach((t,i)=>{t.classList.toggle('done',i<c);t.classList.toggle('cur',i===c&&S.screen!=='final');t.classList.toggle('locked',i>c);});
+  $$('#paths .plit').forEach((l,i)=>{l.style.transition='none';l.style.strokeDashoffset=i<c?0:l.dataset.len;});
+  $('#mtrav').style.left=(tileX(c)+TRAV_OFF)+'px';
+  $('#journey').classList.toggle('clear',S.screen==='final');
+}
+async function walkMap(from,to){
+  const m=$('#mtrav'),x0=tileX(from)+TRAV_OFF,x1=tileX(to)+TRAV_OFF,line=$('#pl'+from),len=+line.dataset.len;let lastStep=-1;
+  line.style.transition='none';
+  await tween(2400,(e,t)=>{m.style.left=(x0+(x1-x0)*e)+'px';m.style.transform=`translateY(${-Math.abs(Math.sin(t*Math.PI*9))*12}px)`;line.style.strokeDashoffset=len*(1-e);
+    const st=Math.floor(t*9);if(st!==lastStep){lastStep=st;sfx.step();}},t=>t);
+  m.style.transform='';
+  $$('#track .tile')[to].classList.remove('locked');
+}
+
+/* ---------------- рюкзак ---------------- */
+function buildBackpack(){$('#bpSlots').innerHTML=BIOMES.map((b,i)=>`<div class="slot" data-i="${i}"><span class="qm">?</span></div>`).join('');}
+function fillSlot(i){const R=BIOMES[i].reward,s=$$('#bpSlots .slot')[i];s.classList.add('on','pop');s.innerHTML=`${img(R.spr,50)}<b${R.en.length>8?' class="long"':''}>${R.en}</b><i>${R.ua}</i>`;}
+$('#bpSlots').addEventListener('click',e=>{const s=e.target.closest('.slot.on');if(!s||S.busy)return;const R=BIOMES[+s.dataset.i].reward;
+  openOv(`<img class="pix rwicon" src="${spr(R.spr)}" alt=""><div class="rwword">${R.en}<button class="speak" data-say="${R.say}">🔊</button></div><div class="rwua">${R.ua}</div><button class="btn big ovx">Закрити ✕</button>`,{cls:'reward'});});
+function showReward(i){
+  const R=BIOMES[i].reward;
+  return new Promise(res=>{
+    let done=false;
+    const go=async()=>{
+      if(done)return;done=true;
+      const icon=$('.rwicon',OVC),from=stageRect(icon),slot=$$('#bpSlots .slot')[i],to=stageRect(slot);closeOv();
+      const fl=document.createElement('img');fl.src=spr(R.spr);fl.className='pix flyer';STAGE.appendChild(fl);sfx.whoosh();
+      const tx=to.x+to.w/2-28,ty=to.y+to.h/2-40;
+      await tween(950,e=>{const s=from.w+(56-from.w)*e;fl.style.width=fl.style.height=s+'px';fl.style.left=(from.x+(tx-from.x)*e)+'px';fl.style.top=(from.y+(ty-from.y)*e-Math.sin(e*Math.PI)*160)+'px';});
+      fl.remove();fillSlot(i);sfx.coin();await sleep(350);res();
+    };
+    openOv(`<div class="ovh">🎁 Нагорода біома «${BIOMES[i].name}»!</div><img class="pix rwicon" src="${spr(R.spr)}" alt=""><div class="rwword">${R.en}<button class="speak" data-say="${R.say}">🔊</button></div><div class="rwua">${R.ua}</div><button class="btn next huge rwgo">🎒 У рюкзак!</button>`,{cls:'reward',primary:go,closable:false});
+    $('.rwgo',OVC).onclick=go;sfx.reward();setTimeout(()=>speakAuto(R.say),700);
+  });
+}
+async function completeBiome(){
+  if(S.busy||S.screen!=='play')return;S.busy=true;closeOv();
+  const i=S.b;await showReward(i);
+  if(i<5){
+    await walkMap(i,i+1);S.b++;S.q=0;S.bs={};S.busy=false;render();sfx.coin();toast(`${BIOMES[S.b].icon} Біом ${S.b+1}: ${BIOMES[S.b].name}!`);
+  }else{
+    token++;await walkMap(5,6);$('#journey').classList.add('clear');sfx.win();await sleep(1300);
+    S.screen='final';S.busy=false;showFinal();confetti();
+  }
+}
+
+/* ---------------- екрани ---------------- */
+function showStart(){
+  S.screen='start';$('#play').classList.add('hidden');const sc=$('#screen');sc.classList.remove('hidden');
+  sc.innerHTML=`<div class="start"><div class="sart"><img class="pix" src="${spr('trav')}" style="width:150px;height:200px" alt=""><img class="pix" src="${towerBig()}" style="width:160px;height:280px;opacity:.8;filter:blur(1.5px)" alt=""></div>
+   <div class="stext"><h1>Подорож до Вежі Чарівника</h1><p>Мандрівники Академії вирушають у дорогу! Шлях іде через <b>6 біомів</b>. У кожному — випробування. Пройдемо всі — і дістанемося <b>Вежі Чарівника</b>!</p>
+   <button class="btn next huge" id="bStart">▶ Вирушаємо!</button>
+   <div class="thelp">Для викладача: <b>→</b> далі · <b>←</b> назад · <b>R</b> скинути біом · 🤔 питання для класу · 👀 відповідь · ⚡ для швидких</div></div></div>`;
+  $('#bStart').onclick=startGame;updateMap();
+}
+function startGame(){if(S.screen!=='start')return;AC();S.screen='play';$('#screen').classList.add('hidden');$('#play').classList.remove('hidden');sfx.ok();render();}
+function showFinal(){
+  $('#play').classList.add('hidden');const sc=$('#screen');sc.classList.remove('hidden');
+  sc.innerHTML=`<div class="final"><div class="ftower"><img class="pix" src="${towerBig()}" alt=""></div><div class="ftext">
+    <h1>🏆 Ви дісталися Вежі!<br>Справжні мандрівники Академії!</h1><h2>Що ми сьогодні вміємо:</h2>
+    <ul>${SKILLS.map((s,i)=>`<li style="animation-delay:${.3+i*.25}s">${s}</li>`).join('')}</ul>
+    <button class="btn next big" id="bAgain">🔁 Нова подорож</button></div></div>`;
+  $('#bAgain').onclick=restart;updateMap();
+}
+function restart(){
+  S.b=0;S.q=0;S.bs={};S.busy=false;S.solved=BIOMES.map(b=>b.questions.map(()=>false));buildBackpack();$('#journey').classList.remove('clear');showStart();
+}
+function confetti(ms=6500){
+  const cv=$('#confetti'),x=cv.getContext('2d'),cols=['#ffd23f','#ff3b3b','#4fd16a','#4aa8ff','#a66bff','#ff9a2e','#ffffff'],P=[];
+  for(let i=0;i<280;i++)P.push({x:Math.random()*1920,y:-Math.random()*1000,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,s:10+Math.random()*12,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.2});
+  const t0=performance.now();cv.style.display='block';
+  (function f(now){x.clearRect(0,0,1920,1080);let alive=false;
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.025;p.r+=p.vr;
+      if(p.y>1100&&now-t0<ms){p.y=-20;p.x=Math.random()*1920;p.vy=2+Math.random()*4;}
+      if(p.y<1100)alive=true;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66);x.restore();});
+    if(alive)requestAnimationFrame(f);else{x.clearRect(0,0,1920,1080);cv.style.display='none';}})(t0);
+}
+
+/* ---------------- старт ---------------- */
+buildMap();buildBackpack();showStart();
+</script>
+</body>
+</html>
