@@ -720,7 +720,8 @@ const B1Q=[
    ===================================================================== */
 const MAZES=[
   {start:[1,5],chest:[4,2],cacti:[]},
-  {start:[1,5],chest:[5,1],cacti:[[1,3],[3,1],[4,4]]}
+  {start:[1,5],chest:[5,1],cacti:[[1,3],[3,1],[4,4]]},
+  {start:[1,5],chest:[4,2],cacti:[[1,3],[3,2]]}
 ];
 function bfs(m){
   const key=(x,z)=>x+','+z,blocked=new Set(m.cacti.map(c=>key(...c))),prev={[key(...m.start)]:null},q=[m.start];
@@ -1142,11 +1143,11 @@ const BIOMES=[
   bonus:{q:'Мандрівник повернувся обличчям на East. Що тепер за спиною?',a:'<b>West</b> — Захід! За спиною завжди протилежна сторона: East ↔ West.'},
   questions:B1Q},
  {key:'desert',name:'Пустеля',icon:'🌵',title:'Маршрут без карти',reward:{en:'COMPASS',ua:'Компас',spr:'compass',say:'Compass'},
-  bonus:{q:'Який найкоротший маршрут? Скільки кроків?',a:()=>{const mi=Math.min(S.q,1),p=bfs(MAZES[mi]),rec=S.bs.rec&&S.bs.rec[mi];
+  bonus:{q:'Який найкоротший маршрут? Скільки кроків?',a:()=>{const mi=curQ().maze||0,p=bfs(MAZES[mi]),rec=S.bs.rec&&S.bs.rec[mi];
     return `Найкоротший — <b>${kroky(p.length)}</b>: ${p.join(' ')}<br>(${pathSummary(p)}${MAZES[mi].cacti.length?', в обхід кактусів':''}).${rec?`<br>🏆 Рекорд класу: ${kroky(rec)}${rec===p.length?' — це найкоротший!':''}`:''}`;}},
   questions:[
-   {prompt:'Доведіть мандрівника до скрині! Кажіть лише: North, South, West, East.',answer:()=>{const p=bfs(MAZES[0]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(0)},
-   {prompt:'Обережно, кактуси! 🌵 Доведіть мандрівника до скрині.',answer:()=>{const p=bfs(MAZES[1]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(1)}
+   {prompt:'Доведіть мандрівника до скрині! Кажіть лише: North, South, West, East.',maze:0,answer:()=>{const p=bfs(MAZES[0]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(0)},
+   {prompt:'Обережно, кактуси! 🌵 Доведіть мандрівника до скрині.',maze:1,answer:()=>{const p=bfs(MAZES[1]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(1)}
   ]},
  {key:'taiga',name:'Сніжна тайга',icon:'❄️',title:'Координати сторін світу',reward:{en:'COORDINATES',ua:'Координати',spr:'coords',say:'Coordinates'},
   bonus:{q:'Мандрівник пройшов 2 кроки East і 3 кроки South. Які координати?',a:'<b>X = 2, Z = 3.</b><br>East — X більшає на 2. South — Z більшає на 3.'},
@@ -1171,13 +1172,33 @@ const BIOMES=[
   ]}
 ];
 BIOMES[5].questions[3].bonus=BIOMES[5].questions[4].bonus;
-const SKILLS=[
+/* Простий режим (за замовчуванням, для 8 років): по 1 завданню на біом.
+   Повна версія з усіма завданнями: додайте ?full до адреси сторінки. */
+const FULL=/[?&]full\b/.test(location.search);
+if(!FULL){
+  const one=(i,q,bonus)=>{BIOMES[i].questions=[q];BIOMES[i].bonus=bonus;};
+  one(0,B1Q[0],{q:'Мандрівник дивиться на North. Що в нього за спиною?',a:'<b>South</b> — Південь! За спиною — протилежна сторона.'});
+  one(1,{prompt:'Доведіть мандрівника до скрині! Кажіть лише: North, South, West, East.',maze:2,
+    answer:()=>{const p=bfs(MAZES[2]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(2)},BIOMES[1].bonus);
+  one(2,BIOMES[2].questions[0],{q:'А якщо мандрівник піде 2 кроки на West? Яким стане X?',a:'<b>X = −2.</b> West — X меншає: 0 − 2 = −2.'});
+  one(3,B4Q[0],{q:'Мандрівник натиснув компасом по магнетиту. Куди тепер вказує компас?',a:'На <b>магнетит</b>! Магнетит змінює напрямок компаса.'});
+  one(4,B5Q[0],{q:'Що додати до карти, щоб вона показувала більшу територію?',a:'<b>Папір</b>! Карта + папір = більший масштаб.'});
+  one(5,BIOMES[5].questions[0],{q:'Який блок завжди веде в одне й те саме місце: [~3 ~0 ~0] чи [2 64 -3]?',a:'Блок <b>без тильди</b> — [2 64 -3]. З тильдою ~ рахуємо від того місця, де стоїш.'});
+}
+const SKILLS=FULL?[
  'Називаємо сторони горизонту: <b>North, South, West, East</b> — і показуємо їх на компасі.',
  'Прокладаємо маршрут лише напрямками <b>N / S / W / E</b>.',
  'Знаємо, як зміниться координата: <b>East +X, West −X, South +Z, North −Z</b>.',
  'Компас у Minecraft вказує на <b>World Spawn</b>; магнетит змінює його напрямок.',
  'Карта + <b>компас</b> = локатор; карта + <b>папір</b> = більший масштаб (до 4 разів).',
  '<b>~</b> — відносні координати (від того, де стоїш); без ~ — абсолютні (завжди одне місце).'
+]:[
+ 'Називаємо сторони горизонту: <b>North, South, West, East</b> — і показуємо їх на компасі.',
+ 'Прокладаємо маршрут лише напрямками <b>N / S / W / E</b>.',
+ 'Знаємо: коли йдемо на <b>East</b>, координата <b>X більшає</b>.',
+ 'Компас у Minecraft вказує на <b>World Spawn</b> — точку появи світу.',
+ 'Карта + <b>компас</b> = на карті видно себе (зелена стрілка).',
+ '<b>~</b> у команді — рахуємо від того місця, де стоїш.'
 ];
 
 /* =====================================================================
@@ -1199,7 +1220,7 @@ function render(){
     setPrompt:p=>{if(t===token)setPrompt(p);},
     solve:msg=>{if(t!==token)return;S.solved[S.b][S.q]=true;const bar=$$('#bbar i')[S.q];if(bar)bar.classList.add('on');
       const all=S.solved[S.b].every(Boolean);
-      fb('ok','✅ '+msg+(all&&S.b<5?'<br>🎉 Біом пройдено! Тисніть «В дорогу!»':''));sfx.ok();updateNav();},
+      fb('ok','✅ '+msg+(all?(S.b<5?'<br>🎉 Біом пройдено! Тисніть «В дорогу!»':'<br>🏰 Тисніть «До Вежі!»'):''));sfx.ok();updateNav();},
     wrong:msg=>{fb('no','🤔 '+msg);sfx.no();},
     info:msg=>fb('info',msg)};
   cur=Q.mount(api)||{};
