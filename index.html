@@ -618,7 +618,8 @@ function mcOptions(api,host,opts,correct,onCorrect,wrongMsgs){
   host.innerHTML=opts.map((o,i)=>`<button class="opt" data-i="${i}"><b>${'АБВГ'[i]})</b>${o}</button>`).join('');
   let locked=false;
   const pick=i=>{if(locked)return;const b=host.children[i];
-    if(i===correct){locked=true;b.classList.add('right');onCorrect();}
+    if(i===correct){locked=true;[...host.children].forEach(x=>x.classList.remove('bad'));b.classList.add('right');
+      api.info('✅ Правильно! Дивимось, що станеться…');onCorrect();}
     else{b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');api.wrong(wrongMsgs[i]);}};
   host.onclick=e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.i);};
   return{pick,correct:()=>pick(correct)};
