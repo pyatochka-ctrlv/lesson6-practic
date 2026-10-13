@@ -315,6 +315,15 @@ button{font-family:inherit;cursor:pointer;color:#fff}
 .cmd .cv{color:var(--gold);background:#2c2440;padding:0 10px;border-bottom:4px solid var(--gold)}
 .twoSteps{display:flex;gap:18px;flex-wrap:wrap}
 .twoSteps .sv{min-width:200px;font-size:38px}
+/* простий режим */
+.simple #bbar,.simple .blab,.simple #qcount,.simple .keys,.simple .rclr{display:none!important}
+.simple #fhead{justify-content:flex-start}
+.bigopts{display:flex;flex-direction:row;gap:20px;flex-wrap:wrap}
+.bigopts .opt{flex:none;font-size:60px;min-width:170px;text-align:center;padding:12px 30px}
+.opt img{vertical-align:middle;margin-right:12px}
+.b3s .rule{animation:pop .35s}
+.tcap{font-size:28px;font-weight:800;background:#2a1f4a;border:4px solid #000;box-shadow:inset 0 0 0 3px var(--purple);padding:10px 14px}
+.tcap b{color:#ff6fb0;font-size:38px}
 
 /* ---------- screens ---------- */
 .start,.final{display:flex;align-items:center;gap:60px;height:100%;padding:0 40px}
@@ -569,14 +578,14 @@ const DIRS={N:{en:'North',ua:'Північ'},S:{en:'South',ua:'Південь'},
 const DV={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 
 function makeGrid(o){
-  const c=o.cell,nx=o.x1-o.x0+1,nz=o.z1-o.z0+1,LW=o.labels?(o.lw||44):0,LH=o.labels?32:0;
+  const c=o.cell,nx=o.x1-o.x0+1,nz=o.z1-o.z0+1,LW=o.labels&&!o.noZ?(o.lw||44):0,LH=o.labels?32:0;
   const el=document.createElement('div');el.className='cgrid';
   el.style.width=(LW+nx*c+8+64)+'px';el.style.height=(LH+nz*c+8+(o.labels?32:0))+'px';
   let h='';
   if(o.labels){
     for(let i=0;i<nx;i++){const v=o.x0+i;h+=`<div class="lx${v===0?' z0':''}" style="left:${LW+4+i*c}px;top:0;width:${c}px;height:${LH}px">${fmt(o.fx?o.fx(v):v)}</div>`;}
-    for(let j=0;j<nz;j++){const v=o.z0+j;h+=`<div class="lz${v===0?' z0':''}" style="left:0;top:${LH+4+j*c}px;width:${LW}px;height:${c}px">${fmt(o.fz?o.fz(v):v)}</div>`;}
-    h+=`<div class="axn" style="left:${LW+nx*c+14}px;top:0;height:${LH}px">X →</div><div class="axn" style="left:2px;top:${LH+nz*c+10}px">Z ↓</div>`;
+    if(!o.noZ)for(let j=0;j<nz;j++){const v=o.z0+j;h+=`<div class="lz${v===0?' z0':''}" style="left:0;top:${LH+4+j*c}px;width:${LW}px;height:${c}px">${fmt(o.fz?o.fz(v):v)}</div>`;}
+    h+=`<div class="axn" style="left:${LW+nx*c+14}px;top:0;height:${LH}px">X →</div>`+(o.noZ?'':`<div class="axn" style="left:2px;top:${LH+nz*c+10}px">Z ↓</div>`);
   }
   h+=`<div class="nb" style="left:${LW+nx*c+16}px;top:${LH+8}px">↑<b>N</b></div>`;
   h+=`<div class="cells" style="left:${LW}px;top:${LH}px;grid-template-columns:repeat(${nx},${c}px);grid-auto-rows:${c}px;--t:url(${o.tex})">`;
@@ -721,7 +730,8 @@ const B1Q=[
 const MAZES=[
   {start:[1,5],chest:[4,2],cacti:[]},
   {start:[1,5],chest:[5,1],cacti:[[1,3],[3,1],[4,4]]},
-  {start:[1,5],chest:[4,2],cacti:[[1,3],[3,2]]}
+  {start:[1,5],chest:[4,2],cacti:[[1,3],[3,2]]},
+  {start:[2,4],chest:[4,2],cacti:[[2,2]]}
 ];
 function bfs(m){
   const key=(x,z)=>x+','+z,blocked=new Set(m.cacti.map(c=>key(...c))),prev={[key(...m.start)]:null},q=[m.start];
@@ -1175,15 +1185,90 @@ BIOMES[5].questions[3].bonus=BIOMES[5].questions[4].bonus;
 /* Простий режим (за замовчуванням, для 8 років): по 1 завданню на біом.
    Повна версія з усіма завданнями: додайте ?full до адреси сторінки. */
 const FULL=/[?&]full\b/.test(location.search);
+/* ---------- прості завдання (лише для простого режиму) ---------- */
+function b3Simple(api){
+  const body=api.body;
+  body.innerHTML=`<div class="b3"><div class="gw"></div><div class="b3s">
+    <div class="lbl">Яке число буде на табличці?</div><div class="opts bigopts"></div>
+    <div class="rule hidden">➡ <b>East</b> — кожен крок число X <em>більшає на 1</em></div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:0,x1:6,z0:0,z1:4,cell:60,tex:TEX.snow,labels:true,noZ:true});
+  body.querySelector('.gw').appendChild(g.el);
+  [[0,0],[5,0],[1,4],[6,4]].forEach(([x,z])=>g.add(ent(img('spruce',40,48),'mid'),x,z));
+  let px=0;const tr=g.add(ent(travHTML(60),'trav'),0,2);
+  const sign=document.createElement('div');sign.className='sign';sign.innerHTML='X = <b class="sx">0</b>';g.ents.appendChild(sign);
+  const place=()=>{const p=g.pos(px,2);sign.style.left=(p.left+30)+'px';sign.style.top=(p.top-2)+'px';sign.querySelector('.sx').textContent=px;};
+  place();
+  const m=mcOptions(api,body.querySelector('.opts'),['1','3','5'],1,async()=>{
+    body.querySelector('.rule').classList.remove('hidden');
+    for(let i=0;i<3;i++){if(!api.alive())return;g.add(ent('','foot'),px,2);px++;g.put(tr,px,2);place();hl(sign.querySelector('.sx'));sfx.step();await sleep(550);}
+    if(api.alive())api.solve('Так! Кожен крок на East — число X більшає: 0 → 1 → 2 → 3.');
+  },['Порахуйте кроки разом: раз, два, три!',null,'Забагато! Порахуйте кроки разом: раз, два, три.']);
+  return{reveal:m.correct};
+}
+function b4Simple(api){
+  const sc=b4Scene(api,{mode:'star',trav:[310,260]});
+  api.body.querySelector('.b4t').textContent='❓';
+  const m=mcOptions(api,sc.opts,[`${img('star',44)}Зірка`,'🏠 Будинок',`${img('lode',40)}Сірий блок`],0,()=>{
+    sc.setMode('star');api.solve('Так! Зірка — це <b>World Spawn</b>: місце, де ти з’явився у світі. Компас у Minecraft завжди показує туди.');
+  },[null,'Подивіться уважно: куди дивиться червоний кінчик стрілки?','Подивіться уважно: куди дивиться червоний кінчик стрілки?']);
+  return{reveal:m.correct};
+}
+function b5Simple(api){
+  const sc=b5Scene(api,{scale:1,loc:false,items:['compass','paper']});let done=false,tmo=0;
+  const pick=it=>{if(done)return;sc.putItem(it);sfx.click();
+    if(it==='compass'){done=true;sc.showRes(1,true);api.solve('Так! Карта + компас — і на карті видно тебе: зелена стрілка!');}
+    else{api.wrong('Папір робить карту більшою, але себе на ній не побачиш. Спробуйте інший предмет!');
+      clearTimeout(tmo);tmo=setTimeout(()=>{if(api.alive()&&!done)sc.putItem(null);},1300);}};
+  sc.items.onclick=e=>{const b=e.target.closest('.item');if(b)pick(b.dataset.it);};
+  return{reveal:()=>pick('compass')};
+}
+const B6S_POS=[[1,2],[0,0],[3,4],[2,1],[5,3],[4,0]];
+function b6Simple(api){
+  const body=api.body,bs=api.bs;if(bs.pi===undefined)bs.pi=0;
+  body.innerHTML=`<div class="b6"><div class="gw"></div>
+    <div class="b6mid"><div class="mtitle">Блок коду:</div><div class="mbs"><div class="mblock sel"><span>телепортуватися</span><span class="v t">~3</span></div></div>
+      <div class="tcap"><b>~</b> — рахуємо від мандрівника</div>
+      <div class="b6btns"><button class="btn mv">🔀 Перемістити мандрівника</button><button class="btn next big run">▶ Запустити</button></div></div>
+    <div class="b6s"><div class="hint6">👆 Клацніть клітинку: куди стрибне мандрівник?</div><div class="fb"></div></div></div>`;
+  const g=makeGrid({x0:0,x1:8,z0:0,z1:4,cell:62,tex:TEX.mount});
+  body.querySelector('.gw').appendChild(g.el);
+  [[8,0],[0,4]].forEach(([x,z])=>g.add(ent(img('rock',40,30),'mid'),x,z));
+  let pos=[...B6S_POS[bs.pi]],pred=null,predEl=null,running=false;
+  const tr=g.add(ent(travHTML(62),'trav'),...pos);
+  const setPred=(x,z)=>{pred=[x,z];if(!predEl)predEl=g.add(ent('<span>?</span>','pred'),x,z);else g.put(predEl,x,z);};
+  g.cells.classList.add('click');
+  g.cells.addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c||running)return;setPred(+c.dataset.x,+c.dataset.z);sfx.click();});
+  const move=()=>{if(running)return;bs.pi=(bs.pi+1)%B6S_POS.length;pos=[...B6S_POS[bs.pi]];g.put(tr,...pos);sfx.step();};
+  body.querySelector('.mv').onclick=move;
+  const run=async()=>{
+    if(running)return;
+    if(!pred){api.info('👆 Спершу клацніть клітинку: куди, на думку класу, стрибне мандрівник?');return;}
+    const from=pos,dest=[pos[0]+3,pos[1]];running=true;
+    const bl=body.querySelector('.mblock');bl.classList.remove('running');void bl.offsetWidth;bl.classList.add('running');
+    sfx.tp();await tpAnim(g,tr,from,dest);if(!api.alive())return;pos=dest;
+    const ok=pred[0]===dest[0]&&pred[1]===dest[1];if(predEl){predEl.remove();predEl=null;}pred=null;
+    if(ok)api.solve('Так! ~3 — це 3 клітинки на East від того місця, де стоїть мандрівник.');
+    else api.wrong('Мандрівник стрибнув сюди! Рахуємо від нього: раз, два, три — на East. Перемістіть його і спробуйте ще!');
+    running=false;
+    if(pos[0]+3>8)setTimeout(()=>{if(api.alive()&&!running)move();},900);
+  };
+  body.querySelector('.run').onclick=run;
+  return{reveal(){if(running)return;if(pos[0]+3>8)move();setPred(pos[0]+3,pos[1]);setTimeout(()=>{if(api.alive())run();},500);}};
+}
 if(!FULL){
+  document.body.classList.add('simple');
   const one=(i,q,bonus)=>{BIOMES[i].questions=[q];BIOMES[i].bonus=bonus;};
-  one(0,B1Q[0],{q:'Мандрівник дивиться на North. Що в нього за спиною?',a:'<b>South</b> — Південь! За спиною — протилежна сторона.'});
-  one(1,{prompt:'Доведіть мандрівника до скрині! Кажіть лише: North, South, West, East.',maze:2,
-    answer:()=>{const p=bfs(MAZES[2]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(2)},BIOMES[1].bonus);
-  one(2,BIOMES[2].questions[0],{q:'А якщо мандрівник піде 2 кроки на West? Яким стане X?',a:'<b>X = −2.</b> West — X меншає: 0 − 2 = −2.'});
-  one(3,B4Q[0],{q:'Мандрівник натиснув компасом по магнетиту. Куди тепер вказує компас?',a:'На <b>магнетит</b>! Магнетит змінює напрямок компаса.'});
-  one(4,B5Q[0],{q:'Що додати до карти, щоб вона показувала більшу територію?',a:'<b>Папір</b>! Карта + папір = більший масштаб.'});
-  one(5,BIOMES[5].questions[0],{q:'Який блок завжди веде в одне й те саме місце: [~3 ~0 ~0] чи [2 64 -3]?',a:'Блок <b>без тильди</b> — [2 64 -3]. З тильдою ~ рахуємо від того місця, де стоїш.'});
+  one(0,{...B1Q[0],prompt:'Встаньте! Де North? Покажіть рукою! 🙋'},{q:'Мандрівник дивиться на North. Що в нього за спиною?',a:'<b>South</b> — Південь! За спиною — протилежна сторона.'});
+  one(1,{prompt:'Доведіть мандрівника до скрині! Лише N, S, W, E.',maze:3,
+    answer:()=>{const p=bfs(MAZES[3]);return `Наприклад: ${p.join(' ')} — ${kroky(p.length)}.`;},mount:b2Mount(3)},BIOMES[1].bonus);
+  one(2,{prompt:'Мандрівник іде 3 кроки на East.',options:['А) 1','Б) 3','В) 5'],answer:'3 — кожен крок на East число X більшає на 1.',mount:b3Simple},
+    {q:'Мандрівник стоїть на X = 3 і йде 1 крок на West. Яке число буде?',a:'<b>2.</b> West — число меншає: 3 − 1 = 2.'});
+  one(3,{prompt:'Куди показує червона стрілка компаса?',options:['А) ⭐ Зірка','Б) 🏠 Будинок','В) Сірий блок'],answer:'На зірку — World Spawn, місце, де ти з’явився у світі.',mount:b4Simple},
+    {q:'Мандрівник натиснув компасом по магнетиту. Куди тепер вказує компас?',a:'На <b>магнетит</b>! Магнетит змінює напрямок компаса.'});
+  one(4,{prompt:'Як побачити себе на карті?',answer:'Додати компас! Карта + компас = видно себе.',mount:b5Simple},
+    {q:'Що додати до карти, щоб вона показувала більшу територію?',a:'<b>Папір</b>! Карта + папір = більший масштаб.'});
+  one(5,{prompt:'Куди стрибне мандрівник? Клацніть клітинку!',answer:'На 3 клітинки на East (праворуч) від мандрівника.',mount:b6Simple},
+    {q:'А якщо в блоці ~5? Куди стрибне мандрівник?',a:'На <b>5 клітинок на East</b> від того місця, де він стоїть!'});
 }
 const SKILLS=FULL?[
  'Називаємо сторони горизонту: <b>North, South, West, East</b> — і показуємо їх на компасі.',
@@ -1195,10 +1280,10 @@ const SKILLS=FULL?[
 ]:[
  'Називаємо сторони горизонту: <b>North, South, West, East</b> — і показуємо їх на компасі.',
  'Прокладаємо маршрут лише напрямками <b>N / S / W / E</b>.',
- 'Знаємо: коли йдемо на <b>East</b>, координата <b>X більшає</b>.',
- 'Компас у Minecraft вказує на <b>World Spawn</b> — точку появи світу.',
+ 'Знаємо: коли йдемо на <b>East</b>, число <b>X більшає</b>.',
+ 'Компас у Minecraft показує на <b>World Spawn</b> — місце, де ти з’явився.',
  'Карта + <b>компас</b> = на карті видно себе (зелена стрілка).',
- '<b>~</b> у команді — рахуємо від того місця, де стоїш.'
+ '<b>~</b> у команді — рахуємо від себе.'
 ];
 
 /* =====================================================================
